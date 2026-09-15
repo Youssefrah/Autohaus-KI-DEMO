@@ -66,7 +66,42 @@ function answer(q){
  return 'Ich habe '+found.length+' passende Fahrzeuge gefunden: '+found.slice(0,3).map(v=>`${v.make} ${v.model} – ${euro(v.price)}, ${v.km.toLocaleString('de-DE')} km`).join(' | ')+'. Soll ich dir eines für eine Probefahrt vormerken?';
 }
 function send(text){const inp=document.getElementById('input');const q=text||inp.value.trim();if(!q)return;add(q,'user');inp.value='';setTimeout(()=>add(answer(q),'bot'),250)}
-function saveLead(e){e.preventDefault();document.getElementById('success').style.display='block';}
+async function saveLead(e){
+  e.preventDefault();
+
+  const lead = {
+    name: document.getElementById('name').value,
+    phone: document.getElementById('phone').value,
+    email: document.getElementById('email').value,
+    vehicle_id: document.getElementById('car').value,
+    vehicle: document.getElementById('car').selectedOptions[0].text,
+    test_drive: true,
+    date: document.getElementById('date').value,
+    time: document.getElementById('time').value,
+    message: 'Probefahrt-Anfrage',
+    status: 'Neu'
+  };
+
+  try {
+    const response = await fetch('/api/leads', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(lead)
+    });
+
+    if (!response.ok) {
+      throw new Error('Lead konnte nicht gespeichert werden');
+    }
+
+    document.getElementById('success').style.display = 'block';
+
+  } catch (error) {
+    console.error(error);
+    alert('Die Anfrage konnte gerade nicht gespeichert werden.');
+  }
+}
 document.getElementById('car').innerHTML=vehicles.filter(v=>v.available).map(v=>`<option value="${v.id}">${v.make} ${v.model} – ${euro(v.price)}</option>`).join('');
 document.getElementById('cars').innerHTML=vehicles.map(v=>`<div class="vehicle"><b>${v.make} ${v.model}</b> <span class="muted">${v.year} • ${v.km.toLocaleString('de-DE')} km • ${v.fuel} • ${v.transmission}</span><div class="price">${euro(v.price)}</div><div class="muted">${v.available?'Verfügbar':'Nicht verfügbar'} • ${v.power} • ${v.color}</div></div>`).join('');
 add('Hallo! 👋 Ich bin der digitale Verkaufsassistent. Ich kann dir passende Fahrzeuge zeigen und eine Probefahrt aufnehmen. Was suchst du?','bot');
