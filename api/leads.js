@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // Lead in Datenbank speichern
     await sql`
       INSERT INTO leads
       (name, phone, email, vehicle_id, vehicle, test_drive, date, time, message, status)
@@ -32,16 +33,46 @@ export default async function handler(req, res) {
        ${lead.status || "Neu"})
     `;
 
+    // E-Mail-Benachrichtigung senden
+    const emailResponse = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: "onboarding@resend.dev",
+        to: ["Youssefr9999@gmail.com"],
+        subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
+        html: `
+          <h2>🚗 Neue Probefahrt-Anfrage</h2>
+          <p><strong>Name:</strong> ${lead.name}</p>
+          <p><strong>Telefon:</strong> ${lead.phone}</p>
+          <p><strong>E-Mail:</strong> ${lead.email || "-"}</p>
+          <p><strong>Fahrzeug:</strong> ${lead.vehicle || "-"}</p>
+          <p><strong>Fahrzeug-ID:</strong> ${lead.vehicle_id || "-"}</p>
+          <p><strong>Datum:</strong> ${lead.date || "-"}</p>
+          <p><strong>Uhrzeit:</strong> ${lead.time || "-"}</p>
+          <p><strong>Nachricht:</strong> ${lead.message || "-"}</p>
+          <p><strong>Status:</strong> ${lead.status || "Neu"}</p>
+        `
+      })
+    });
+
+    if (!emailResponse.ok) {
+      console.error("EMAIL ERROR:", await emailResponse.text());
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Lead gespeichert"
+      message: "Lead gespeichert und Benachrichtigung verarbeitet"
     });
 
   } catch (error) {
-    console.error("DATABASE ERROR:", error);
+    console.error("LEAD ERROR:", error);
 
     return res.status(500).json({
-      error: "Lead konnte nicht gespeichert werden"
+      error: "Lead konnte nicht verarbeitet werden"
     });
   }
 }
