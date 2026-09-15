@@ -42,7 +42,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         from: "onboarding@resend.dev",
-        to: ["to:delivered@resend.dev"],
+        to: to: ["delivered@resend.dev"],
         subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
         html: `
           <h2>🚗 Neue Probefahrt-Anfrage</h2>
