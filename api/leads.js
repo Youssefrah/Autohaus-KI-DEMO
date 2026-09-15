@@ -4,7 +4,9 @@ const sql = neon(process.env.POSTGRES_URL);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Nur POST erlaubt" });
+    return res.status(405).json({
+      error: "Nur POST erlaubt"
+    });
   }
 
   try {
@@ -16,56 +18,71 @@ export default async function handler(req, res) {
       });
     }
 
-    // Lead in Datenbank speichern
+    // 1. Lead in Neon-Datenbank speichern
     await sql`
       INSERT INTO leads
       (name, phone, email, vehicle_id, vehicle, test_drive, date, time, message, status)
       VALUES
-      (${lead.name},
-       ${lead.phone},
-       ${lead.email || ""},
-       ${lead.vehicle_id || ""},
-       ${lead.vehicle || ""},
-       ${lead.test_drive ?? true},
-       ${lead.date || null},
-       ${lead.time || null},
-       ${lead.message || ""},
-       ${lead.status || "Neu"})
+      (
+        ${lead.name},
+        ${lead.phone},
+        ${lead.email || ""},
+        ${lead.vehicle_id || ""},
+        ${lead.vehicle || ""},
+        ${lead.test_drive ?? true},
+        ${lead.date || null},
+        ${lead.time || null},
+        ${lead.message || ""},
+        ${lead.status || "Neu"}
+      )
     `;
 
-    // E-Mail-Benachrichtigung senden
-    const emailResponse = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: "onboarding@resend.dev",
-        to: to: ["delivered@resend.dev"],
-        subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
-        html: `
-          <h2>🚗 Neue Probefahrt-Anfrage</h2>
-          <p><strong>Name:</strong> ${lead.name}</p>
-          <p><strong>Telefon:</strong> ${lead.phone}</p>
-          <p><strong>E-Mail:</strong> ${lead.email || "-"}</p>
-          <p><strong>Fahrzeug:</strong> ${lead.vehicle || "-"}</p>
-          <p><strong>Fahrzeug-ID:</strong> ${lead.vehicle_id || "-"}</p>
-          <p><strong>Datum:</strong> ${lead.date || "-"}</p>
-          <p><strong>Uhrzeit:</strong> ${lead.time || "-"}</p>
-          <p><strong>Nachricht:</strong> ${lead.message || "-"}</p>
-          <p><strong>Status:</strong> ${lead.status || "Neu"}</p>
-        `
-      })
-    });
+    // 2. E-Mail-Benachrichtigung senden
+    try {
+      const emailResponse = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          from: "onboarding@resend.dev",
+          to: ["delivered@resend.dev"],
+          subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
+          html: `
+            <h2>🚗 Neue Probefahrt-Anfrage</h2>
 
-    if (!emailResponse.ok) {
-      console.error("EMAIL ERROR:", await emailResponse.text());
+            <p><strong>Name:</strong> ${lead.name}</p>
+            <p><strong>Telefon:</strong> ${lead.phone}</p>
+            <p><strong>E-Mail:</strong> ${lead.email || "-"}</p>
+            <p><strong>Fahrzeug:</strong> ${lead.vehicle || "-"}</p>
+            <p><strong>Fahrzeug-ID:</strong> ${lead.vehicle_id || "-"}</p>
+            <p><strong>Datum:</strong> ${lead.date || "-"}</p>
+            <p><strong>Uhrzeit:</strong> ${lead.time || "-"}</p>
+            <p><strong>Nachricht:</strong> ${lead.message || "-"}</p>
+            <p><strong>Status:</strong> ${lead.status || "Neu"}</p>
+          `
+        })
+      });
+
+      if (!emailResponse.ok) {
+        console.error(
+          "EMAIL ERROR:",
+          await emailResponse.text()
+        );
+      } else {
+        console.log("EMAIL ERFOLGREICH GESENDET");
+      }
+
+    } catch (emailError) {
+      console.error("EMAIL ERROR:", emailError);
     }
 
+    // Lead bleibt auch dann gespeichert,
+    // wenn der E-Mail-Versand fehlschlägt
     return res.status(200).json({
       success: true,
-      message: "Lead gespeichert und Benachrichtigung verarbeitet"
+      message: "Lead gespeichert und E-Mail verarbeitet"
     });
 
   } catch (error) {
