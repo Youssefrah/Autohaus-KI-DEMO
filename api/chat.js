@@ -14,8 +14,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // API-Key aus Vercel laden
-    const apiKey = process.env.OPENAI_API_KEY;
+    let apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
       console.error("OPENAI_API_KEY fehlt");
@@ -25,10 +24,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Leerzeichen/Zeilenumbrüche entfernen
-    const cleanApiKey = apiKey.trim();
+    // Entfernt Leerzeichen, Zeilenumbrüche und versehentliche Anführungszeichen
+    apiKey = apiKey
+      .replace(/\s/g, "")
+      .replace(/^["']|["']$/g, "")
+      .replace(/^Bearer/i, "");
 
-    if (!cleanApiKey) {
+    if (!apiKey) {
       console.error("OPENAI_API_KEY ist leer");
 
       return res.status(500).json({
@@ -44,7 +46,7 @@ export default async function handler(req, res) {
         method: "POST",
 
         headers: {
-          "Authorization": `Bearer ${cleanApiKey}`,
+          "Authorization": "Bearer " + apiKey,
           "Content-Type": "application/json"
         },
 
@@ -81,19 +83,16 @@ Deine Aufgaben:
       });
     }
 
-    const reply =
-      data.output_text ||
-      "Entschuldigung, ich konnte gerade keine Antwort erstellen.";
-
     console.log("OpenAI Antwort erfolgreich erhalten.");
 
     return res.status(200).json({
       success: true,
-      reply: reply
+      reply:
+        data.output_text ||
+        "Entschuldigung, ich konnte gerade keine Antwort erstellen."
     });
 
   } catch (error) {
-
     console.error("CHAT ERROR:", error);
 
     return res.status(500).json({
