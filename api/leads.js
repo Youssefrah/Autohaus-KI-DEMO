@@ -46,8 +46,8 @@ export default async function handler(req, res) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          from: "onboarding@resend.dev",
-          to: ["delivered@resend.dev"],
+          from: "Autohaus KI <leads@autoverkauf-ki.de>",
+          to: ["youssefrahime9@gmail.com"],
           subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
           html: `
             <h2>🚗 Neue Probefahrt-Anfrage</h2>
