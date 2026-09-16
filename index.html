@@ -1,153 +1,1173 @@
-octype
-html>
+<!doctype html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+
 <title>Autohaus KI – Demo</title>
+
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f5f6f8;color:#111}
-header{background:#111;color:#fff;padding:28px 18px;text-align:center}header h1{margin:0 0 6px;font-size:28px}header p{margin:0;color:#bbb}
-.wrap{max-width:900px;margin:20px auto;padding:0 14px}.card{background:#fff;border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 3px 18px #0000000d}
-h2{margin:0 0 14px}.chips button{border:0;border-radius:20px;padding:10px 14px;margin:4px;background:#eee}
-#chat{height:390px;overflow:auto;border:1px solid #eee;border-radius:14px;padding:12px;background:#fafafa}
-.msg{max-width:82%;padding:11px 13px;border-radius:14px;margin:8px 0;line-height:1.4}.bot{background:#e9e9ec}.user{background:#111;color:white;margin-left:auto}
-.row{display:flex;gap:8px;margin-top:10px}.row input{flex:1;padding:13px;border:1px solid #ddd;border-radius:12px;font-size:16px}.row button,.primary{background:#111;color:#fff;border:0;border-radius:12px;padding:12px 16px;font-weight:600}
-.vehicle{border:1px solid #eee;border-radius:14px;padding:14px;margin:9px 0}.vehicle b{font-size:17px}.muted{color:#666;font-size:13px}.price{font-size:19px;font-weight:700;margin-top:5px}
-label{display:block;font-size:13px;color:#555;margin:9px 0 4px}form input,form select{width:100%;padding:12px;border:1px solid #ddd;border-radius:10px;font-size:15px}form button{margin-top:12px}
-#success{display:none;padding:12px;border-radius:10px;background:#e9f7ea}
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#f5f6f8;
+  color:#111
+}
+
+header{
+  background:#111;
+  color:#fff;
+  padding:28px 18px;
+  text-align:center
+}
+
+header h1{
+  margin:0 0 6px;
+  font-size:28px
+}
+
+header p{
+  margin:0;
+  color:#bbb
+}
+
+.wrap{
+  max-width:900px;
+  margin:20px auto;
+  padding:0 14px
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+  box-shadow:0 3px 18px #0000000d
+}
+
+h2{
+  margin:0 0 14px
+}
+
+.chips button{
+  border:0;
+  border-radius:20px;
+  padding:10px 14px;
+  margin:4px;
+  background:#eee;
+  cursor:pointer
+}
+
+#chat{
+  height:390px;
+  overflow:auto;
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:12px;
+  background:#fafafa
+}
+
+.msg{
+  max-width:82%;
+  padding:11px 13px;
+  border-radius:14px;
+  margin:8px 0;
+  line-height:1.4;
+  white-space:pre-wrap
+}
+
+.bot{
+  background:#e9e9ec
+}
+
+.user{
+  background:#111;
+  color:white;
+  margin-left:auto
+}
+
+.row{
+  display:flex;
+  gap:8px;
+  margin-top:10px
+}
+
+.row input{
+  flex:1;
+  padding:13px;
+  border:1px solid #ddd;
+  border-radius:12px;
+  font-size:16px
+}
+
+.row button,
+.primary{
+  background:#111;
+  color:#fff;
+  border:0;
+  border-radius:12px;
+  padding:12px 16px;
+  font-weight:600;
+  cursor:pointer
+}
+
+.vehicle{
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:14px;
+  margin:9px 0
+}
+
+.vehicle b{
+  font-size:17px
+}
+
+.muted{
+  color:#666;
+  font-size:13px
+}
+
+.price{
+  font-size:19px;
+  font-weight:700;
+  margin-top:5px
+}
+
+label{
+  display:block;
+  font-size:13px;
+  color:#555;
+  margin:9px 0 4px
+}
+
+form input,
+form select{
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:15px
+}
+
+form button{
+  margin-top:12px
+}
+
+#success{
+  display:none;
+  padding:12px;
+  border-radius:10px;
+  background:#e9f7ea;
+  margin-top:12px
+}
+
+/* LEAD-ZENTRALE */
+
+.admin-box{
+  background:#f7f7f8;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px
+}
+
+.admin-box input{
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:10px;
+  font-size:15px;
+  margin-bottom:8px
+}
+
+.admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+.admin-actions button{
+  border:0;
+  border-radius:10px;
+  padding:10px 14px;
+  background:#111;
+  color:#fff;
+  font-weight:600;
+  cursor:pointer
+}
+
+.admin-actions button.secondary{
+  background:#eee;
+  color:#111
+}
+
+#leadStatus{
+  margin-top:10px;
+  font-size:14px;
+  color:#666
+}
+
+.lead{
+  border:1px solid #e5e5e5;
+  border-radius:14px;
+  padding:15px;
+  margin:10px 0;
+  background:#fff
+}
+
+.lead-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:flex-start;
+  margin-bottom:10px
+}
+
+.lead-name{
+  font-size:18px;
+  font-weight:700
+}
+
+.badge{
+  background:#e9f7ea;
+  color:#176b24;
+  border-radius:20px;
+  padding:5px 9px;
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap
+}
+
+.lead-line{
+  margin:5px 0;
+  font-size:14px
+}
+
+.lead-label{
+  color:#666;
+  font-size:13px
+}
+
+.no-leads{
+  text-align:center;
+  color:#666;
+  padding:20px
+}
+
+@media(max-width:600px){
+
+  .row{
+    flex-direction:column
+  }
+
+  .row button{
+    width:100%
+  }
+
+  .lead-top{
+    flex-direction:column
+  }
+
+}
 </style>
 </head>
+
 <body>
-<header><h1>Autohaus KI-Assistent</h1><p>Demo-Prototyp • Fahrzeugberatung & Probefahrt</p></header>
+
+<header>
+  <h1>Autohaus KI-Assistent</h1>
+  <p>Demo-Prototyp • Fahrzeugberatung & Probefahrt</p>
+</header>
+
 <div class="wrap">
-<div class="card">
-<h2>🤖 Chat mit dem Verkaufsassistenten</h2>
-<div id="chat"></div>
-<div class="chips">
-<button onclick="send('Ich suche einen BMW bis 25.000 €')">BMW bis 25.000 €</button>
-<button onclick="send('Welche Autos gibt es unter 20.000 €?')">Unter 20.000 €</button>
-<button onclick="send('Ich möchte eine Probefahrt')">Probefahrt</button>
-</div>
-<div class="row"><input id="input" placeholder="z. B. Ich suche einen BMW bis 25.000 €" onkeydown="if(event.key==='Enter')send()"><button onclick="send()">Senden</button></div>
+
+  <!-- KI CHAT -->
+
+  <div class="card">
+
+    <h2>🤖 Chat mit dem Verkaufsassistenten</h2>
+
+    <div id="chat"></div>
+
+    <div class="chips">
+
+      <button onclick="send('Ich suche einen BMW bis 25.000 €')">
+        BMW bis 25.000 €
+      </button>
+
+      <button onclick="send('Welche Autos gibt es unter 20.000 €?')">
+        Unter 20.000 €
+      </button>
+
+      <button onclick="send('Ich möchte eine Probefahrt')">
+        Probefahrt
+      </button>
+
+    </div>
+
+    <div class="row">
+
+      <input
+        id="input"
+        placeholder="z. B. Ich suche einen BMW bis 25.000 €"
+        onkeydown="if(event.key==='Enter')send()"
+      >
+
+      <button onclick="send()">
+        Senden
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- PROBEFAHRT -->
+
+  <div class="card">
+
+    <h2>📅 Probefahrt / Lead</h2>
+
+    <form onsubmit="saveLead(event)">
+
+      <label>Name</label>
+      <input id="name" required>
+
+      <label>Telefon</label>
+      <input id="phone" required>
+
+      <label>E-Mail</label>
+      <input id="email" type="email">
+
+      <label>Fahrzeug</label>
+      <select id="car"></select>
+
+      <label>Wunschdatum</label>
+      <input id="date" type="date">
+
+      <label>Wunschzeit</label>
+      <input id="time" type="time">
+
+      <button class="primary" type="submit">
+        Probefahrt anfragen
+      </button>
+
+    </form>
+
+    <div id="success">
+      ✅ Anfrage erfolgreich gespeichert.
+    </div>
+
+  </div>
+
+
+  <!-- FAHRZEUGE -->
+
+  <div class="card">
+
+    <h2>🚘 Fahrzeuge</h2>
+
+    <div id="cars"></div>
+
+  </div>
+
+
+  <!-- LEAD-ZENTRALE -->
+
+  <div class="card">
+
+    <h2>📋 Lead-Zentrale</h2>
+
+    <div class="admin-box">
+
+      <div class="muted" style="margin-bottom:8px">
+        Geschützter Bereich für das Autohaus
+      </div>
+
+      <input
+        id="adminKey"
+        type="password"
+        placeholder="Admin-Key eingeben"
+      >
+
+      <div class="admin-actions">
+
+        <button onclick="loadLeads()">
+          Leads laden
+        </button>
+
+        <button
+          class="secondary"
+          onclick="clearLeads()"
+        >
+          Zurücksetzen
+        </button>
+
+      </div>
+
+      <div id="leadStatus"></div>
+
+    </div>
+
+    <div id="leads">
+      <div class="no-leads">
+        🔒 Bitte Admin-Key eingeben und „Leads laden“ drücken.
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
-<div class="card">
-<h2>📅 Probefahrt / Lead</h2>
-<form onsubmit="saveLead(event)">
-<label>Name</label><input id="name" required>
-<label>Telefon</label><input id="phone" required>
-<label>E-Mail</label><input id="email" type="email">
-<label>Fahrzeug</label><select id="car"></select>
-<label>Wunschdatum</label><input id="date" type="date">
-<label>Wunschzeit</label><input id="time" type="time">
-<button class="primary" type="submit">Probefahrt anfragen</button>
-</form>
-<div id="success">✅ Anfrage gespeichert – genau so soll unser späteres System automatisch Leads an das Autohaus übergeben.</div>
-</div>
 
-<div class="card">
-<h2>🚘 Test-Fahrzeuge</h2>
-<div id="cars"></div>
-</div>
-</div>
 <script>
-const vehicles=[{"id": "A001", "make": "BMW", "model": "320d", "year": 2021, "km": 72000, "price": 24990, "fuel": "Diesel", "transmission": "Automatik", "power": "190 PS", "color": "Schwarz", "available": true}, {"id": "A002", "make": "Audi", "model": "A4 40 TDI", "year": 2021, "km": 65000, "price": 26490, "fuel": "Diesel", "transmission": "Automatik", "power": "204 PS", "color": "Grau", "available": true}, {"id": "A003", "make": "Mercedes-Benz", "model": "C 200", "year": 2022, "km": 58000, "price": 27990, "fuel": "Benzin", "transmission": "Automatik", "power": "204 PS", "color": "Silber", "available": true}, {"id": "A004", "make": "Volkswagen", "model": "Golf 8", "year": 2022, "km": 45000, "price": 19990, "fuel": "Benzin", "transmission": "Automatik", "power": "150 PS", "color": "Weiß", "available": true}, {"id": "A005", "make": "BMW", "model": "118i", "year": 2021, "km": 51000, "price": 21490, "fuel": "Benzin", "transmission": "Automatik", "power": "178 PS", "color": "Blau", "available": true}, {"id": "A006", "make": "Mercedes-Benz", "model": "A 200", "year": 2021, "km": 47000, "price": 22990, "fuel": "Benzin", "transmission": "Automatik", "power": "163 PS", "color": "Weiß", "available": true}, {"id": "A007", "make": "Audi", "model": "A3 35 TFSI", "year": 2022, "km": 39000, "price": 23990, "fuel": "Benzin", "transmission": "Automatik", "power": "150 PS", "color": "Schwarz", "available": true}, {"id": "A008", "make": "Volkswagen", "model": "Passat Variant", "year": 2020, "km": 83000, "price": 21990, "fuel": "Diesel", "transmission": "Automatik", "power": "190 PS", "color": "Grau", "available": true}, {"id": "A009", "make": "BMW", "model": "X1 sDrive18i", "year": 2022, "km": 42000, "price": 28990, "fuel": "Benzin", "transmission": "Automatik", "power": "136 PS", "color": "Weiß", "available": true}, {"id": "A010", "make": "Skoda", "model": "Octavia Combi", "year": 2021, "km": 61000, "price": 18990, "fuel": "Benzin", "transmission": "Automatik", "power": "150 PS", "color": "Silber", "available": true}, {"id": "A011", "make": "Toyota", "model": "Corolla Hybrid", "year": 2022, "km": 35000, "price": 20990, "fuel": "Hybrid", "transmission": "Automatik", "power": "122 PS", "color": "Rot", "available": true}, {"id": "A012", "make": "Volkswagen", "model": "T-Roc", "year": 2021, "km": 54000, "price": 21990, "fuel": "Benzin", "transmission": "Automatik", "power": "150 PS", "color": "Blau", "available": true}, {"id": "A013", "make": "BMW", "model": "520d", "year": 2020, "km": 91000, "price": 25990, "fuel": "Diesel", "transmission": "Automatik", "power": "190 PS", "color": "Schwarz", "available": true}, {"id": "A014", "make": "Audi", "model": "Q3 35 TDI", "year": 2021, "km": 68000, "price": 27990, "fuel": "Diesel", "transmission": "Automatik", "power": "150 PS", "color": "Weiß", "available": true}, {"id": "A015", "make": "Mercedes-Benz", "model": "GLA 200", "year": 2021, "km": 49000, "price": 26990, "fuel": "Benzin", "transmission": "Automatik", "power": "163 PS", "color": "Grau", "available": true}, {"id": "A016", "make": "Ford", "model": "Focus ST-Line", "year": 2022, "km": 33000, "price": 19990, "fuel": "Benzin", "transmission": "Schaltung", "power": "155 PS", "color": "Blau", "available": true}, {"id": "A017", "make": "Hyundai", "model": "i30 N Line", "year": 2021, "km": 44000, "price": 18490, "fuel": "Benzin", "transmission": "Schaltung", "power": "140 PS", "color": "Rot", "available": true}, {"id": "A018", "make": "Kia", "model": "Ceed GT-Line", "year": 2022, "km": 28000, "price": 19990, "fuel": "Benzin", "transmission": "Automatik", "power": "160 PS", "color": "Schwarz", "available": true}, {"id": "A019", "make": "Tesla", "model": "Model 3", "year": 2021, "km": 62000, "price": 26990, "fuel": "Elektro", "transmission": "Automatik", "power": "283 PS", "color": "Weiß", "available": true}, {"id": "A020", "make": "Volkswagen", "model": "Golf 8 GTI", "year": 2021, "km": 57000, "price": 27990, "fuel": "Benzin", "transmission": "Automatik", "power": "245 PS", "color": "Grau", "available": false}];
-const euro=n=>new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
-const chat=document.getElementById('chat');
-function add(text,who){const d=document.createElement('div');d.className='msg '+who;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
-function answer(q){
- q=q.toLowerCase();
- if(q.includes('probefahrt')) return 'Sehr gerne. Fülle unten das kurze Probefahrt-Formular aus. Unser späteres System wird den Termin automatisch prüfen und den Lead an das Autohaus senden.';
- let max=q.match(/(?:bis|unter|maximal)\s*(\d[\d.]*)\s*(?:€|euro)?/);
- let budget=max?parseInt(max[1].replaceAll('.','')):Infinity;
- let brand=['bmw','audi','mercedes','volkswagen','vw','skoda','toyota','ford','hyundai','kia','tesla'].find(x=>q.includes(x));
- let found=vehicles.filter(v=>v.available&&v.price<=budget&&(!brand||v.make.toLowerCase().includes(brand)||(brand==='vw'&&v.make==='Volkswagen')));
- if(!found.length) return 'Ich habe in der aktuellen Test-Datenbank kein passendes verfügbares Fahrzeug gefunden. Ich kann die Suche mit einem anderen Budget oder einer anderen Marke wiederholen.';
- return 'Ich habe '+found.length+' passende Fahrzeuge gefunden: '+found.slice(0,3).map(v=>`${v.make} ${v.model} – ${euro(v.price)}, ${v.km.toLocaleString('de-DE')} km`).join(' | ')+'. Soll ich dir eines für eine Probefahrt vormerken?';
+
+/* =========================
+   FAHRZEUGE
+========================= */
+
+const vehicles = [
+
+  {
+    id:"A001",
+    brand:"BMW",
+    model:"320d",
+    year:2021,
+    km:72000,
+    price:24990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:190,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A002",
+    brand:"BMW",
+    model:"118i",
+    year:2022,
+    km:45000,
+    price:21990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:136,
+    color:"Weiß",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A003",
+    brand:"Mercedes-Benz",
+    model:"A 200",
+    year:2021,
+    km:52000,
+    price:23990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:163,
+    color:"Grau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A004",
+    brand:"Audi",
+    model:"A3 Sportback",
+    year:2020,
+    km:61000,
+    price:20990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:150,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A005",
+    brand:"Volkswagen",
+    model:"Golf 8",
+    year:2021,
+    km:48000,
+    price:19990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:150,
+    color:"Blau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A006",
+    brand:"Volkswagen",
+    model:"Passat Variant",
+    year:2020,
+    km:69000,
+    price:22990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:150,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A007",
+    brand:"Mercedes-Benz",
+    model:"C 220d",
+    year:2022,
+    km:39000,
+    price:32990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:200,
+    color:"Silber",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A008",
+    brand:"Audi",
+    model:"A4 Avant",
+    year:2021,
+    km:57000,
+    price:27990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:163,
+    color:"Grau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A009",
+    brand:"BMW",
+    model:"X1",
+    year:2022,
+    km:41000,
+    price:31990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:178,
+    color:"Weiß",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A010",
+    brand:"Volkswagen",
+    model:"Tiguan",
+    year:2021,
+    km:55000,
+    price:26990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:150,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A011",
+    brand:"Skoda",
+    model:"Octavia",
+    year:2021,
+    km:62000,
+    price:18990,
+    fuel:"Diesel",
+    transmission:"Automatik",
+    power:150,
+    color:"Grau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A012",
+    brand:"Seat",
+    model:"Leon",
+    year:2022,
+    km:38000,
+    price:19990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:150,
+    color:"Rot",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A013",
+    brand:"Ford",
+    model:"Focus",
+    year:2021,
+    km:47000,
+    price:17990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:155,
+    color:"Blau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A014",
+    brand:"Opel",
+    model:"Astra",
+    year:2022,
+    km:35000,
+    price:18990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:130,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A015",
+    brand:"Renault",
+    model:"Megane",
+    year:2021,
+    km:44000,
+    price:16990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:140,
+    color:"Weiß",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A016",
+    brand:"Toyota",
+    model:"Corolla",
+    year:2022,
+    km:33000,
+    price:21990,
+    fuel:"Hybrid",
+    transmission:"Automatik",
+    power:184,
+    color:"Silber",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A017",
+    brand:"Hyundai",
+    model:"i30",
+    year:2021,
+    km:42000,
+    price:17990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:140,
+    color:"Grau",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A018",
+    brand:"Kia",
+    model:"Ceed",
+    year:2022,
+    km:29000,
+    price:19990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:160,
+    color:"Schwarz",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A019",
+    brand:"Mazda",
+    model:"3",
+    year:2021,
+    km:36000,
+    price:20990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:150,
+    color:"Rot",
+    status:"Verfügbar"
+  },
+
+  {
+    id:"A020",
+    brand:"Volkswagen",
+    model:"Golf 8 GTI",
+    year:2022,
+    km:31000,
+    price:29990,
+    fuel:"Benzin",
+    transmission:"Automatik",
+    power:245,
+    color:"Weiß",
+    status:"Nicht verfügbar"
+  }
+
+];
+
+
+/* =========================
+   HILFSFUNKTIONEN
+========================= */
+
+const euro = n =>
+  new Intl.NumberFormat(
+    "de-DE",
+    {
+      style:"currency",
+      currency:"EUR",
+      maximumFractionDigits:0
+    }
+  ).format(n);
+
+
+/* =========================
+   CHAT
+========================= */
+
+const chat = document.getElementById("chat");
+
+function add(text, who){
+
+  const d = document.createElement("div");
+
+  d.className = "msg " + who;
+
+  d.textContent = text;
+
+  chat.appendChild(d);
+
+  chat.scrollTop = chat.scrollHeight;
+
 }
+
+
 async function send(text){
-  const inp=document.getElementById('input');
-  const q=text||inp.value.trim();
 
-  if(!q)return;
+  const inp = document.getElementById("input");
 
-  add(q,'user');
-  inp.value='';
+  const q = text || inp.value.trim();
 
-  add('⏳ Einen Moment...','bot');
+  if(!q) return;
+
+  add(q,"user");
+
+  inp.value = "";
+
+  const loadingMessage = document.createElement("div");
+
+  loadingMessage.className = "msg bot";
+
+  loadingMessage.textContent = "⏳ Einen Moment...";
+
+  chat.appendChild(loadingMessage);
+
+  chat.scrollTop = chat.scrollHeight;
 
   try{
-    const response=await fetch('/api/chat',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        message:q
-      })
-    });
 
-    const data=await response.json();
+    const response = await fetch(
+      "/api/chat",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          message:q
+        })
+      }
+    );
 
-    const messages=document.querySelectorAll('#chat .bot');
-    const lastMessage=messages[messages.length-1];
+    const data = await response.json();
 
     if(!response.ok){
-      lastMessage.textContent='Leider ist gerade ein Fehler aufgetreten.';
-      console.error(data);
+
+      console.error("CHAT API ERROR:",data);
+
+      loadingMessage.textContent =
+        "Leider ist gerade ein Fehler aufgetreten.";
+
       return;
+
     }
 
-    lastMessage.textContent=data.reply||'Keine Antwort erhalten.';
+    loadingMessage.textContent =
+      data.reply || "Keine Antwort erhalten.";
 
   }catch(error){
-    console.error(error);
 
-    const messages=document.querySelectorAll('#chat .bot');
-    const lastMessage=messages[messages.length-1];
+    console.error("CHAT CONNECTION ERROR:",error);
 
-    lastMessage.textContent='Leider konnte ich gerade keine Verbindung zum KI-Assistenten herstellen.';
+    loadingMessage.textContent =
+      "Leider konnte ich gerade keine Verbindung zum KI-Assistenten herstellen.";
+
   }
+
 }
+
+
+/* =========================
+   PROBEFAHRT FORMULAR
+========================= */
+
 async function saveLead(e){
+
   e.preventDefault();
 
   const lead = {
-    name: document.getElementById('name').value,
-    phone: document.getElementById('phone').value,
-    email: document.getElementById('email').value,
-    vehicle_id: document.getElementById('car').value,
-    vehicle: document.getElementById('car').selectedOptions[0].text,
-    test_drive: true,
-    date: document.getElementById('date').value,
-    time: document.getElementById('time').value,
-    message: 'Probefahrt-Anfrage',
-    status: 'Neu'
+
+    name:document.getElementById("name").value,
+
+    phone:document.getElementById("phone").value,
+
+    email:document.getElementById("email").value,
+
+    vehicle_id:document.getElementById("car").value,
+
+    vehicle:
+      document.getElementById("car")
+      .selectedOptions[0].text,
+
+    test_drive:true,
+
+    date:document.getElementById("date").value,
+
+    time:document.getElementById("time").value,
+
+    message:"Probefahrt-Anfrage",
+
+    status:"Neu"
+
   };
 
-  try {
-    const response = await fetch('/api/leads', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(lead)
-    });
 
-    if (!response.ok) {
-      throw new Error('Lead konnte nicht gespeichert werden');
+  try{
+
+    const response = await fetch(
+      "/api/leads",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify(lead)
+      }
+    );
+
+
+    if(!response.ok){
+
+      throw new Error(
+        "Lead konnte nicht gespeichert werden"
+      );
+
     }
 
-    document.getElementById('success').style.display = 'block';
 
-  } catch (error) {
+    document.getElementById(
+      "success"
+    ).style.display = "block";
+
+
+  }catch(error){
+
     console.error(error);
-    alert('Die Anfrage konnte gerade nicht gespeichert werden.');
+
+    alert(
+      "Die Anfrage konnte gerade nicht gespeichert werden."
+    );
+
   }
+
 }
-document.getElementById('car').innerHTML=vehicles.filter(v=>v.available).map(v=>`<option value="${v.id}">${v.make} ${v.model} – ${euro(v.price)}</option>`).join('');
-document.getElementById('cars').innerHTML=vehicles.map(v=>`<div class="vehicle"><b>${v.make} ${v.model}</b> <span class="muted">${v.year} • ${v.km.toLocaleString('de-DE')} km • ${v.fuel} • ${v.transmission}</span><div class="price">${euro(v.price)}</div><div class="muted">${v.available?'Verfügbar':'Nicht verfügbar'} • ${v.power} • ${v.color}</div></div>`).join('');
-add('Hallo! 👋 Ich bin der digitale Verkaufsassistent. Ich kann dir passende Fahrzeuge zeigen und eine Probefahrt aufnehmen. Was suchst du?','bot');
+
+
+/* =========================
+   FAHRZEUGE DARSTELLEN
+========================= */
+
+document.getElementById("car").innerHTML =
+  vehicles
+  .filter(v => v.status === "Verfügbar")
+  .map(v =>
+    `<option value="${v.id}">
+      ${v.brand} ${v.model} – ${euro(v.price)}
+    </option>`
+  )
+  .join("");
+
+
+document.getElementById("cars").innerHTML =
+  vehicles
+  .map(v =>
+
+    `<div class="vehicle">
+
+      <b>${v.brand} ${v.model}</b>
+
+      <div class="muted">
+        Baujahr ${v.year}
+        • ${v.km.toLocaleString("de-DE")} km
+        • ${v.fuel}
+        • ${v.transmission}
+      </div>
+
+      <div class="price">
+        ${euro(v.price)}
+      </div>
+
+      <div class="muted">
+        ${v.status}
+        • ${v.power} PS
+        • ${v.color}
+      </div>
+
+    </div>`
+
+  )
+  .join("");
+
+
+/* =========================
+   LEAD-ZENTRALE
+========================= */
+
+async function loadLeads(){
+
+  const key =
+    document.getElementById("adminKey").value.trim();
+
+  const status =
+    document.getElementById("leadStatus");
+
+  const leadsContainer =
+    document.getElementById("leads");
+
+
+  if(!key){
+
+    status.textContent =
+      "Bitte Admin-Key eingeben.";
+
+    return;
+
+  }
+
+
+  status.textContent =
+    "⏳ Leads werden geladen...";
+
+
+  leadsContainer.innerHTML = "";
+
+
+  try{
+
+    const response = await fetch(
+      "/api/leads",
+      {
+        method:"GET",
+        headers:{
+          "x-admin-key":key
+        }
+      }
+    );
+
+
+    const data = await response.json();
+
+
+    if(response.status === 401){
+
+      status.textContent =
+        "❌ Falscher Admin-Key.";
+
+      leadsContainer.innerHTML =
+        `<div class="no-leads">
+          Zugriff verweigert.
+        </div>`;
+
+      return;
+
+    }
+
+
+    if(!response.ok){
+
+      console.error(data);
+
+      status.textContent =
+        "❌ Leads konnten nicht geladen werden.";
+
+      return;
+
+    }
+
+
+    status.textContent =
+      `✅ ${data.leads.length} Lead(s) geladen.`;
+
+
+    if(!data.leads.length){
+
+      leadsContainer.innerHTML =
+        `<div class="no-leads">
+          Noch keine Leads vorhanden.
+        </div>`;
+
+      return;
+
+    }
+
+
+    leadsContainer.innerHTML =
+      data.leads
+      .map(lead => {
+
+        const date =
+          lead.date
+          ? new Date(lead.date)
+              .toLocaleDateString("de-DE")
+          : "-";
+
+
+        const created =
+          lead.created_at
+          ? new Date(lead.created_at)
+              .toLocaleString("de-DE")
+          : "-";
+
+
+        return `
+
+          <div class="lead">
+
+            <div class="lead-top">
+
+              <div class="lead-name">
+                ${escapeHtml(lead.name || "-")}
+              </div>
+
+              <div class="badge">
+                ${escapeHtml(lead.status || "Neu")}
+              </div>
+
+            </div>
+
+
+            <div class="lead-line">
+              <span class="lead-label">
+                🚗 Fahrzeug:
+              </span>
+              ${escapeHtml(lead.vehicle || "-")}
+            </div>
+
+
+            <div class="lead-line">
+              <span class="lead-label">
+                📅 Probefahrt:
+              </span>
+              ${date}
+              ${lead.time ? " · " + escapeHtml(lead.time.substring(0,5)) : ""}
+            </div>
+
+
+            <div class="lead-line">
+              <span class="lead-label">
+                📞 Telefon:
+              </span>
+              ${escapeHtml(lead.phone || "-")}
+            </div>
+
+
+            <div class="lead-line">
+              <span class="lead-label">
+                ✉️ E-Mail:
+              </span>
+              ${escapeHtml(lead.email || "-")}
+            </div>
+
+
+            <div class="lead-line">
+              <span class="lead-label">
+                📝 Nachricht:
+              </span>
+              ${escapeHtml(lead.message || "-")}
+            </div>
+
+
+            <div class="lead-line muted">
+              Erstellt: ${created}
+            </div>
+
+          </div>
+
+        `;
+
+      })
+      .join("");
+
+
+  }catch(error){
+
+    console.error(
+      "LEAD LOAD ERROR:",
+      error
+    );
+
+    status.textContent =
+      "❌ Verbindung zum Lead-System fehlgeschlagen.";
+
+  }
+
+}
+
+
+function clearLeads(){
+
+  document.getElementById("adminKey").value = "";
+
+  document.getElementById("leadStatus").textContent = "";
+
+  document.getElementById("leads").innerHTML =
+    `<div class="no-leads">
+      🔒 Bitte Admin-Key eingeben und „Leads laden“ drücken.
+    </div>`;
+
+}
+
+
+function escapeHtml(value){
+
+  return String(value)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================
+   STARTNACHRICHT
+========================= */
+
+add(
+  "Hallo! 👋 Ich bin der digitale Verkaufsassistent. Ich kann dir passende Fahrzeuge zeigen und eine Probefahrt aufnehmen. Was suchst du?",
+  "bot"
+);
+
 </script>
-</body></html>
+
+</body>
+</html>
