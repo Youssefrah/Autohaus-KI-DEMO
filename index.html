@@ -65,7 +65,50 @@ function answer(q){
  if(!found.length) return 'Ich habe in der aktuellen Test-Datenbank kein passendes verfügbares Fahrzeug gefunden. Ich kann die Suche mit einem anderen Budget oder einer anderen Marke wiederholen.';
  return 'Ich habe '+found.length+' passende Fahrzeuge gefunden: '+found.slice(0,3).map(v=>`${v.make} ${v.model} – ${euro(v.price)}, ${v.km.toLocaleString('de-DE')} km`).join(' | ')+'. Soll ich dir eines für eine Probefahrt vormerken?';
 }
-function send(text){const inp=document.getElementById('input');const q=text||inp.value.trim();if(!q)return;add(q,'user');inp.value='';setTimeout(()=>add(answer(q),'bot'),250)}
+async function send(text){
+  const inp=document.getElementById('input');
+  const q=text||inp.value.trim();
+
+  if(!q)return;
+
+  add(q,'user');
+  inp.value='';
+
+  add('⏳ Einen Moment...','bot');
+
+  try{
+    const response=await fetch('/api/chat',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json'
+      },
+      body:JSON.stringify({
+        message:q
+      })
+    });
+
+    const data=await response.json();
+
+    const messages=document.querySelectorAll('#chat .bot');
+    const lastMessage=messages[messages.length-1];
+
+    if(!response.ok){
+      lastMessage.textContent='Leider ist gerade ein Fehler aufgetreten.';
+      console.error(data);
+      return;
+    }
+
+    lastMessage.textContent=data.reply||'Keine Antwort erhalten.';
+
+  }catch(error){
+    console.error(error);
+
+    const messages=document.querySelectorAll('#chat .bot');
+    const lastMessage=messages[messages.length-1];
+
+    lastMessage.textContent='Leider konnte ich gerade keine Verbindung zum KI-Assistenten herstellen.';
+  }
+}
 async function saveLead(e){
   e.preventDefault();
 
