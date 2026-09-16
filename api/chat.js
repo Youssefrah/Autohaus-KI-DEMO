@@ -1,3 +1,5 @@
+import { readFile } from "fs/promises";
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -14,6 +16,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // OpenAI API-Key laden
     let apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -22,12 +25,22 @@ export default async function handler(req, res) {
       });
     }
 
+    // Versehentliche Leerzeichen/Zeilenumbrüche entfernen
     apiKey = apiKey
       .replace(/\s/g, "")
       .replace(/^["']|["']$/g, "")
       .replace(/^Bearer/i, "");
 
+    // Fahrzeugdatenbank laden
+    const vehiclesPath = new URL("../vehicles.json", import.meta.url);
+    const vehiclesFile = await readFile(vehiclesPath, "utf8");
+    const vehicles = JSON.parse(vehiclesFile);
+
+    // Nur die Fahrzeugdaten an die KI geben
+    const vehicleData = JSON.stringify(vehicles, null, 2);
+
     console.log("OpenAI Anfrage wird gesendet...");
+    console.log("Fahrzeuge geladen:", vehicles.length);
 
     const response = await fetch(
       "https://api.openai.com/v1/responses",
@@ -43,21 +56,45 @@ export default async function handler(req, res) {
           model: "gpt-5.6-luna",
 
           instructions: `
-Du bist ein professioneller KI-Verkaufsassistent für ein Autohaus.
+Du bist der digitale Verkaufsassistent eines Autohauses.
 
-Du beantwortest Kundenfragen freundlich und professionell auf Deutsch.
+WICHTIG:
+Du darfst Fahrzeugdaten ausschließlich aus der unten angegebenen Fahrzeugdatenbank verwenden.
+
+Du darfst niemals Fahrzeuge, Preise, Kilometerstände,
+Baujahre, Leistungen oder andere Fahrzeugdaten erfinden.
+
+Wenn ein Fahrzeug nicht in der Datenbank vorhanden ist,
+sage dem Kunden, dass es aktuell nicht im Bestand gefunden wurde.
+
+Wenn ein Fahrzeug den Status "Nicht verfügbar" hat,
+darfst du es nicht als verfügbares Fahrzeug anbieten.
 
 Deine Aufgaben:
 
-- Kunden zu Fahrzeugen beraten
-- Fahrzeuge anhand von Preis, Marke, Modell, Baujahr, Kilometerstand, Kraftstoff, Getriebe und Leistung erklären
-- Kunden bei der Fahrzeugauswahl unterstützen
-- Probefahrten entgegennehmen
-- Bei einer Probefahrt nach Name, Telefonnummer, Fahrzeug, Wunschdatum und Wunschzeit fragen
-- Niemals Fahrzeugdaten erfinden
-- Wenn dir bestimmte Fahrzeugdaten nicht vorliegen, sage ehrlich, dass diese Information nicht vorliegt
+1. Kunden freundlich und professionell beraten.
+2. Fahrzeuge anhand der Wünsche des Kunden suchen.
+3. Nach Marke, Modell, Preis, Baujahr, Kilometerstand,
+   Kraftstoff, Getriebe oder Leistung filtern.
+4. Mehrere passende Fahrzeuge übersichtlich darstellen.
+5. Bei Fahrzeugfragen konkrete Daten aus der Datenbank nennen.
+6. Bei einer Probefahrt die benötigten Kundendaten erfragen:
+   - Name
+   - Telefonnummer
+   - E-Mail, falls vorhanden
+   - gewünschtes Fahrzeug
+   - Wunschdatum
+   - Wunschzeit
+7. Wenn noch wichtige Angaben für eine Probefahrt fehlen,
+   gezielt danach fragen.
+8. Wenn der Kunde nur allgemein nach Fahrzeugen fragt,
+   zuerst passende verfügbare Fahrzeuge nennen.
+9. Antworte auf Deutsch.
+10. Sei kurz, freundlich und verkaufsorientiert, aber ehrlich.
 
-Aktuell handelt es sich um eine Demo des Autohaus-KI-Systems.
+FAHRZEUGDATENBANK:
+
+${vehicleData}
           `,
 
           input: message
@@ -75,15 +112,10 @@ Aktuell handelt es sich um eine Demo des Autohaus-KI-Systems.
       });
     }
 
-    /*
-      Die Responses API liefert den Text
-      innerhalb des output-Arrays zurück.
-    */
-
+    // Antworttext aus der Responses API auslesen
     let reply = "";
 
     if (Array.isArray(data.output)) {
-
       for (const item of data.output) {
 
         if (!Array.isArray(item.content)) {
@@ -104,7 +136,6 @@ Aktuell handelt es sich um eine Demo des Autohaus-KI-Systems.
     }
 
     if (!reply) {
-
       console.error(
         "KEIN TEXT IN OPENAI ANTWORT:",
         JSON.stringify(data)
