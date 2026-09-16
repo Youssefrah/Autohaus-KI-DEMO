@@ -278,21 +278,31 @@ function findVehicle(text, previousState = {}) {
   const normalized = normalize(text);
 
   if (previousState.vehicleId) {
-    const previous = vehicles.find(v => v.id === previousState.vehicleId);
-    if (previous) return previous;
+    const previous = vehicles.find(
+      vehicle => vehicle.id === previousState.vehicleId
+    );
+
+    if (previous) {
+      return previous;
+    }
   }
 
-  return vehicles.find(vehicle => {
-    const fullName = normalize(`${vehicle.brand} ${vehicle.model}`);
-    const brand = normalize(vehicle.brand);
-    const model = normalize(vehicle.model);
+  return (
+    vehicles.find(vehicle => {
+      const fullName = normalize(
+        `${vehicle.brand} ${vehicle.model}`
+      );
 
-    return (
-      normalized.includes(fullName) ||
-      normalized.includes(model) ||
-      normalized.includes(brand)
-    );
-  }) || null;
+      const brand = normalize(vehicle.brand);
+      const model = normalize(vehicle.model);
+
+      return (
+        normalized.includes(fullName) ||
+        normalized.includes(model) ||
+        normalized.includes(brand)
+      );
+    }) || null
+  );
 }
 
 function extractPhone(text = "") {
@@ -300,7 +310,9 @@ function extractPhone(text = "") {
     /(?:\+49|0049|0)\s?(?:\(?\d{2,5}\)?[\s./-]?)?(?:\d[\s./-]?){6,12}/
   );
 
-  if (!match) return "";
+  if (!match) {
+    return "";
+  }
 
   const value = match[0].replace(/[^\d+]/g, "");
 
@@ -334,17 +346,22 @@ function extractDate(text = "") {
     /\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/
   );
 
-  if (!match) return "";
+  if (!match) {
+    return "";
+  }
 
-  let day = Number(match[1]);
-  let month = Number(match[2]);
-  let year = match[3]
-    ? Number(match[3].length === 2 ? `20${match[3]}` : match[3])
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+
+  const year = match[3]
+    ? Number(
+        match[3].length === 2
+          ? `20${match[3]}`
+          : match[3]
+      )
     : 2026;
 
   if (
-    !Number.isInteger(day) ||
-    !Number.isInteger(month) ||
     day < 1 ||
     day > 31 ||
     month < 1 ||
@@ -353,23 +370,42 @@ function extractDate(text = "") {
     return "";
   }
 
-  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(
+  return `${year}-${String(month).padStart(
     2,
     "0"
-  )}`;
+  )}-${String(day).padStart(2, "0")}`;
 }
 
-function extractTime(text = "") {
-  const match = text.match(/\b([01]?\d|2[0-3])(?::|\.| Uhr )([0-5]\d)\b/i);
+/*
+  WICHTIG:
+  Eine Uhrzeit wird NUR erkannt, wenn sie
+  - einen Doppelpunkt enthält: 19:12
+  - oder "Uhr" enthält: 19 Uhr
 
-  if (match) {
-    return `${String(Number(match[1])).padStart(2, "0")}:${match[2]}`;
+  19.12 wird deshalb NICHT als Uhrzeit erkannt.
+  19.12 bleibt ausschließlich ein Datum.
+*/
+function extractTime(text = "") {
+  // Beispiel: 19:12
+  const colonMatch = text.match(
+    /\b([01]?\d|2[0-3]):([0-5]\d)\b/
+  );
+
+  if (colonMatch) {
+    return `${String(
+      Number(colonMatch[1])
+    ).padStart(2, "0")}:${colonMatch[2]}`;
   }
 
-  const hourMatch = text.match(/\b([01]?\d|2[0-3])\s*Uhr\b/i);
+  // Beispiele: 19 Uhr / 19Uhr
+  const hourMatch = text.match(
+    /\b([01]?\d|2[0-3])\s*Uhr\b/i
+  );
 
   if (hourMatch) {
-    return `${String(Number(hourMatch[1])).padStart(2, "0")}:00`;
+    return `${String(
+      Number(hourMatch[1])
+    ).padStart(2, "0")}:00`;
   }
 
   return "";
@@ -378,28 +414,43 @@ function extractTime(text = "") {
 function looksLikeName(text = "") {
   const value = text.trim();
 
-  if (!value || value.length > 60) return false;
-
-  if (extractEmail(value)) return false;
-  if (extractPhone(value)) return false;
-  if (extractDate(value)) return false;
-  if (extractTime(value)) return false;
-
-  if (/\b(morgen|uebermorgen|uhr|ja|nein|okay|ok|passt|danke)\b/i.test(normalize(value))) {
+  if (!value || value.length > 60) {
     return false;
   }
 
-  return /^[A-Za-zÄÖÜäöüßÀ-ÿ' -]{2,60}$/.test(value);
+  if (extractEmail(value)) {
+    return false;
+  }
+
+  if (extractPhone(value)) {
+    return false;
+  }
+
+  if (extractDate(value)) {
+    return false;
+  }
+
+  if (extractTime(value)) {
+    return false;
+  }
+
+  if (
+    /\b(morgen|uebermorgen|uhr|ja|nein|okay|ok|passt|danke)\b/i.test(
+      normalize(value)
+    )
+  ) {
+    return false;
+  }
+
+  return /^[A-Za-zÄÖÜäöüßÀ-ÿ' -]{2,60}$/.test(
+    value
+  );
 }
 
 function isPositiveAnswer(text = "") {
   return /^(ja|jap|jo|gerne|gern|klar|natuerlich|natürlich|okay|ok|passt|yes|gerne ja)[!. ]*$/i.test(
     text.trim()
   );
-}
-
-function isNegativeAnswer(text = "") {
-  return /^(nein|no|nicht|keine|kein|ne)[!. ]*$/i.test(text.trim());
 }
 
 function buildConversationState(messages = []) {
@@ -419,7 +470,10 @@ function buildConversationState(messages = []) {
     const content = message?.content || "";
 
     if (message.role === "user") {
-      const vehicle = findVehicle(content, state);
+      const vehicle = findVehicle(
+        content,
+        state
+      );
 
       if (vehicle) {
         state.vehicleId = vehicle.id;
@@ -427,23 +481,37 @@ function buildConversationState(messages = []) {
       }
 
       const phone = extractPhone(content);
-      if (phone) state.phone = phone;
+
+      if (phone) {
+        state.phone = phone;
+      }
 
       const email = extractEmail(content);
-      if (email) state.email = email;
+
+      if (email) {
+        state.email = email;
+      }
 
       const date = extractDate(content);
-      if (date) state.date = date;
+
+      if (date) {
+        state.date = date;
+      }
 
       const time = extractTime(content);
-      if (time) state.time = time;
+
+      if (time) {
+        state.time = time;
+      }
 
       if (isPositiveAnswer(content)) {
         const previousAssistant = messages[i - 1];
 
         if (
           previousAssistant?.role === "assistant" &&
-          /probefahrt/i.test(previousAssistant.content || "")
+          /probefahrt/i.test(
+            previousAssistant.content || ""
+          )
         ) {
           state.testDrive = true;
         }
@@ -455,11 +523,14 @@ function buildConversationState(messages = []) {
         looksLikeName(content) &&
         i > 0
       ) {
-        const previousAssistant = messages[i - 1];
+        const previousAssistant =
+          messages[i - 1];
 
         if (
           previousAssistant?.role === "assistant" &&
-          /(name|heißen|heissen|vorname)/i.test(previousAssistant.content || "")
+          /(name|heißen|heissen|vorname)/i.test(
+            previousAssistant.content || ""
+          )
         ) {
           state.name = content.trim();
         }
@@ -474,7 +545,9 @@ function buildConversationState(messages = []) {
 
         if (
           nextUser?.role === "user" &&
-          isPositiveAnswer(nextUser.content || "")
+          isPositiveAnswer(
+            nextUser.content || ""
+          )
         ) {
           state.testDrive = true;
         }
@@ -490,9 +563,12 @@ function buildConversationState(messages = []) {
 
         if (
           nextUser?.role === "user" &&
-          looksLikeName(nextUser.content || "")
+          looksLikeName(
+            nextUser.content || ""
+          )
         ) {
-          state.name = nextUser.content.trim();
+          state.name =
+            nextUser.content.trim();
         }
       }
     }
@@ -502,13 +578,33 @@ function buildConversationState(messages = []) {
 }
 
 function getMissingField(state) {
-  if (!state.vehicleId) return "vehicle";
-  if (!state.testDrive) return "testDrive";
-  if (!state.name) return "name";
-  if (!state.phone) return "phone";
-  if (!state.email) return "email";
-  if (!state.date) return "date";
-  if (!state.time) return "time";
+  if (!state.vehicleId) {
+    return "vehicle";
+  }
+
+  if (!state.testDrive) {
+    return "testDrive";
+  }
+
+  if (!state.name) {
+    return "name";
+  }
+
+  if (!state.phone) {
+    return "phone";
+  }
+
+  if (!state.email) {
+    return "email";
+  }
+
+  if (!state.date) {
+    return "date";
+  }
+
+  if (!state.time) {
+    return "time";
+  }
 
   return null;
 }
@@ -519,30 +615,32 @@ function buildConversationDirective(state) {
   if (!state.vehicleId) {
     return `
 Der Kunde hat noch kein konkretes Fahrzeug ausgewählt.
-Hilf ihm bei der Fahrzeugsuche anhand der Fahrzeugdatenbank.
+
+Hilf bei der Fahrzeugsuche ausschließlich anhand
+der Fahrzeugdatenbank.
 `;
   }
 
   if (!state.testDrive) {
     return `
 Das Fahrzeug ist bereits bekannt.
-Der Kunde hat bisher noch KEINE bestätigte Probefahrt gewünscht.
 
-Wenn es natürlich passt, darfst du fragen:
+Eine Probefahrt wurde bisher noch nicht bestätigt.
+
+Wenn es zum Gespräch passt, darfst du fragen:
 "Möchten Sie eine Probefahrt vereinbaren?"
 
-Wenn der Kunde danach mit Ja antwortet, gilt die Probefahrt als bestätigt.
+Wenn der Kunde eindeutig mit Ja antwortet,
+ist die Probefahrt bestätigt.
 `;
   }
 
   if (missing === "name") {
     return `
-WICHTIG:
 Die Probefahrt ist bereits bestätigt.
 
-FRAGE NICHT erneut:
-- ob der Kunde eine Probefahrt möchte
-- ob er eine Probefahrt vereinbaren möchte
+FRAGE NICHT erneut, ob der Kunde eine Probefahrt
+möchte oder vereinbaren möchte.
 
 Frage ausschließlich nach dem Namen.
 
@@ -553,11 +651,12 @@ Beispiel:
 
   if (missing === "phone") {
     return `
-WICHTIG:
 Die Probefahrt ist bereits bestätigt.
-Name ist bereits vorhanden.
+
+Der Name ist bereits vorhanden.
 
 FRAGE NICHT erneut nach der Probefahrt.
+
 Frage ausschließlich nach der Telefonnummer.
 
 Beispiel:
@@ -567,11 +666,12 @@ Beispiel:
 
   if (missing === "email") {
     return `
-WICHTIG:
 Die Probefahrt ist bereits bestätigt.
+
 Name und Telefonnummer sind bereits vorhanden.
 
 FRAGE NICHT erneut nach der Probefahrt.
+
 Frage ausschließlich nach der E-Mail-Adresse.
 
 Beispiel:
@@ -581,11 +681,13 @@ Beispiel:
 
   if (missing === "date") {
     return `
-WICHTIG:
 Die Probefahrt ist bereits bestätigt.
-Name, Telefonnummer und E-Mail-Adresse sind bereits vorhanden.
+
+Name, Telefonnummer und E-Mail-Adresse
+sind bereits vorhanden.
 
 FRAGE NICHT erneut nach der Probefahrt.
+
 Frage ausschließlich nach dem gewünschten Datum.
 
 Beispiel:
@@ -595,12 +697,16 @@ Beispiel:
 
   if (missing === "time") {
     return `
-WICHTIG:
 Die Probefahrt ist bereits bestätigt.
-Alle persönlichen Kontaktdaten und das Datum sind bereits vorhanden.
+
+Name, Telefonnummer, E-Mail und Datum
+sind bereits vorhanden.
 
 FRAGE NICHT erneut nach der Probefahrt.
-Frage ausschließlich nach der gewünschten Uhrzeit.
+
+Das Datum ist bereits erfasst.
+
+Frage ausschließlich nach der Uhrzeit.
 
 Beispiel:
 "Und welche Uhrzeit passt Ihnen?"
@@ -608,10 +714,12 @@ Beispiel:
   }
 
   return `
-Alle benötigten Angaben für die Probefahrt sind vorhanden.
+Alle benötigten Angaben für die Probefahrt
+sind vorhanden.
 
 Erstelle jetzt den Lead.
-Frage NICHTS mehr.
+
+Frage nichts mehr.
 `;
 }
 
@@ -629,7 +737,9 @@ function cleanReply(reply = "", state) {
       ""
     );
 
-    result = result.replace(/\s{2,}/g, " ").trim();
+    result = result
+      .replace(/\s{2,}/g, " ")
+      .trim();
   }
 
   return result;
@@ -653,24 +763,37 @@ function extractLead(text = "", state) {
     );
 
     const match = block.match(regex);
-    return match ? match[1].trim() : "";
+
+    return match
+      ? match[1].trim()
+      : "";
   }
 
   const lead = {
     name: getValue("name") || state.name,
-    phone: getValue("phone") || state.phone,
-    email: getValue("email") || state.email,
-    vehicle_id: getValue("vehicle_id") || state.vehicleId,
-    vehicle: getValue("vehicle") || state.vehicle,
+    phone:
+      getValue("phone") || state.phone,
+    email:
+      getValue("email") || state.email,
+    vehicle_id:
+      getValue("vehicle_id") ||
+      state.vehicleId,
+    vehicle:
+      getValue("vehicle") ||
+      state.vehicle,
     test_drive: getValue("test_drive"),
-    date: getValue("date") || state.date,
-    time: getValue("time") || state.time,
+    date:
+      getValue("date") || state.date,
+    time:
+      getValue("time") || state.time,
     message: getValue("message"),
-    status: getValue("status") || "Neu"
+    status:
+      getValue("status") || "Neu"
   };
 
   lead.test_drive =
-    String(lead.test_drive).toLowerCase() === "true" ||
+    String(lead.test_drive).toLowerCase() ===
+      "true" ||
     state.testDrive;
 
   if (!lead.name || !lead.phone) {
@@ -682,7 +805,10 @@ function extractLead(text = "", state) {
 
 function removeLeadFromReply(text = "") {
   return text
-    .replace(/LEAD_START[\s\S]*?LEAD_END/gi, "")
+    .replace(
+      /LEAD_START[\s\S]*?LEAD_END/gi,
+      ""
+    )
     .trim();
 }
 
@@ -722,7 +848,9 @@ async function saveLead(lead) {
 
 async function sendLeadEmail(lead) {
   if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY fehlt.");
+    console.error(
+      "RESEND_API_KEY fehlt."
+    );
     return;
   }
 
@@ -736,7 +864,9 @@ E-Mail: ${lead.email || "-"}
 Fahrzeug: ${lead.vehicle || "-"}
 Fahrzeug-ID: ${lead.vehicle_id || "-"}
 
-Probefahrt: ${lead.test_drive ? "Ja" : "Nein"}
+Probefahrt: ${
+    lead.test_drive ? "Ja" : "Nein"
+  }
 Datum: ${lead.date || "-"}
 Uhrzeit: ${lead.time || "-"}
 
@@ -746,23 +876,40 @@ ${lead.message || "-"}
 Status: ${lead.status || "Neu"}
 `;
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: "Autohaus KI <leads@autoverkauf-ki.de>",
-      to: ["youssefr9999@gmail.com"],
-      subject: `Neue Fahrzeuganfrage – ${lead.vehicle || "Autohaus KI"}`,
-      text: emailText
-    })
-  });
+  const response = await fetch(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        Authorization:
+          `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type":
+          "application/json"
+      },
+      body: JSON.stringify({
+        from:
+          "Autohaus KI <leads@autoverkauf-ki.de>",
+        to: [
+          "youssefr9999@gmail.com"
+        ],
+        subject:
+          `Neue Fahrzeuganfrage – ${
+            lead.vehicle ||
+            "Autohaus KI"
+          }`,
+        text: emailText
+      })
+    }
+  );
 
   if (!response.ok) {
-    const errorText = await response.text();
-    console.error("RESEND ERROR:", errorText);
+    const errorText =
+      await response.text();
+
+    console.error(
+      "RESEND ERROR:",
+      errorText
+    );
   }
 }
 
@@ -786,18 +933,25 @@ function buildVehicleContext() {
     .join("\n");
 }
 
-export default async function handler(req, res) {
+export default async function handler(
+  req,
+  res
+) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({
-        error: "Methode nicht erlaubt"
+        error:
+          "Methode nicht erlaubt"
       });
     }
 
-    const message = req.body?.message || "";
-    const messages = Array.isArray(req.body?.messages)
-      ? req.body.messages
-      : [];
+    const message =
+      req.body?.message || "";
+
+    const messages =
+      Array.isArray(req.body?.messages)
+        ? req.body.messages
+        : [];
 
     if (!message.trim()) {
       return res.status(400).json({
@@ -805,58 +959,103 @@ export default async function handler(req, res) {
       });
     }
 
-    const state = buildConversationState(messages);
+    const state =
+      buildConversationState(
+        messages
+      );
 
-    console.log("GESPRÄCHSZUSTAND:", state);
+    console.log(
+      "GESPRÄCHSZUSTAND:",
+      state
+    );
 
-    const vehicleContext = buildVehicleContext();
-    const conversationDirective = buildConversationDirective(state);
+    const vehicleContext =
+      buildVehicleContext();
+
+    const conversationDirective =
+      buildConversationDirective(
+        state
+      );
 
     const systemPrompt = `
-Du bist ein professioneller KI-Verkaufsassistent eines deutschen Autohauses.
+Du bist ein professioneller KI-Verkaufsassistent
+eines deutschen Autohauses.
 
-Deine Aufgabe:
+Deine Aufgaben:
+
 - Fahrzeugfragen beantworten
-- Fahrzeuge ausschließlich aus der bereitgestellten Fahrzeugdatenbank nennen
-- passende Fahrzeuge anhand der Datenbank finden
-- Interessenten freundlich und natürlich begleiten
-- Probefahrten entgegennehmen
+- Fahrzeuge ausschließlich aus der bereitgestellten
+  Fahrzeugdatenbank nennen
+- passende Fahrzeuge finden
+- Interessenten freundlich begleiten
+- Probefahrt-Anfragen aufnehmen
 - Leads vollständig erfassen
 
 WICHTIGE REGELN:
 
-1. Verwende ausschließlich die unten angegebene Fahrzeugdatenbank.
-Erfinde niemals Fahrzeuge, Preise, Kilometerstände, Ausstattungen oder Verfügbarkeiten.
+1. Verwende ausschließlich die Fahrzeugdatenbank.
+Erfinde niemals Fahrzeuge, Preise, Kilometerstände,
+Ausstattungen oder Verfügbarkeiten.
 
-2. Wenn ein konkretes Fahrzeug bereits erkannt wurde, frage NICHT erneut, welches Fahrzeug gemeint ist.
+2. Wenn ein Fahrzeug bereits erkannt wurde,
+frage NICHT erneut, welches Fahrzeug gemeint ist.
 
-3. Wenn der Kunde eine Probefahrt bereits bestätigt hat, ist die Probefahrt-Absicht fest.
+3. Wenn der Kunde eine Probefahrt bereits bestätigt hat,
+ist die Probefahrt-Absicht fest.
+
 Frage danach NIEMALS erneut:
+
 "Möchten Sie eine Probefahrt?"
-"möchten Sie eine Probefahrt vereinbaren?"
+"Möchten Sie eine Probefahrt vereinbaren?"
 "Wollen Sie eine Probefahrt?"
 oder sinngleiche Fragen.
 
-4. Wenn bereits Informationen vorhanden sind, frage sie NICHT erneut.
+4. Bereits vorhandene Informationen dürfen
+NICHT erneut abgefragt werden.
 
 5. Sammle die Informationen in dieser Reihenfolge:
-Name → Telefonnummer → E-Mail → Datum → Uhrzeit.
 
-6. Frage immer nur nach der nächsten fehlenden Information.
-Keine unnötigen Sammelfragen.
+Name
+→ Telefonnummer
+→ E-Mail
+→ Datum
+→ Uhrzeit
 
-7. Wenn der Kunde beispielsweise "Ja" auf eine Probefahrtfrage antwortet, bedeutet das eindeutig:
-test_drive = true.
+6. Frage immer nur nach der nächsten fehlenden
+Information.
 
-8. Wenn der Kunde "morgen" sagt, verwende das aktuelle Projektdatum 16.09.2026:
+7. Ein eindeutiges "Ja" auf eine Probefahrtfrage
+bedeutet:
+
+test_drive = true
+
+8. Datumsangaben:
+
 morgen = 2026-09-16
 übermorgen = 2026-09-17
 
-9. Sobald alle Daten vorhanden sind:
-Name, Telefonnummer, E-Mail, Fahrzeug, Probefahrt, Datum und Uhrzeit,
-erstelle einen Lead-Block.
+Bei einem Datum wie 19.12 ist dies ein DATUM
+und KEINE Uhrzeit.
 
-10. Der Lead-Block muss exakt dieses Format haben:
+Eine Uhrzeit ist beispielsweise:
+
+19:12
+19 Uhr
+19:00
+
+9. Sobald alle Informationen vorhanden sind:
+
+Name
+Telefonnummer
+E-Mail
+Fahrzeug
+Probefahrt
+Datum
+Uhrzeit
+
+erstelle den Lead-Block.
+
+10. Der Lead-Block muss exakt so aussehen:
 
 LEAD_START
 lead: true
@@ -872,17 +1071,26 @@ message: [kurze Zusammenfassung]
 status: Neu
 LEAD_END
 
-11. Nach dem Lead-Block darf kein weiterer unnötiger Dialog folgen.
+11. Nach dem Lead-Block keinen weiteren
+unnötigen Dialog führen.
 
-12. Antworte auf Deutsch, freundlich, professionell und natürlich.
+12. Antworte auf Deutsch, freundlich,
+professionell und natürlich.
 
 FAHRZEUGDATENBANK:
+
 ${vehicleContext}
 
 AKTUELL ERKANNTER GESPRÄCHSZUSTAND:
-${JSON.stringify(state, null, 2)}
+
+${JSON.stringify(
+  state,
+  null,
+  2
+)}
 
 VERBINDLICHE DIALOGANWEISUNG:
+
 ${conversationDirective}
 `;
 
@@ -895,15 +1103,21 @@ ${conversationDirective}
         .filter(
           msg =>
             msg &&
-            (msg.role === "user" || msg.role === "assistant") &&
-            typeof msg.content === "string"
+            (
+              msg.role === "user" ||
+              msg.role === "assistant"
+            ) &&
+            typeof msg.content ===
+              "string"
         )
         .slice(-30)
     ];
 
     if (
       apiMessages.length === 1 ||
-      apiMessages[apiMessages.length - 1]?.content !== message
+      apiMessages[
+        apiMessages.length - 1
+      ]?.content !== message
     ) {
       apiMessages.push({
         role: "user",
@@ -911,90 +1125,128 @@ ${conversationDirective}
       });
     }
 
-    const openaiResponse = await fetch(
-      "https://api.openai.com/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "gpt-5.6",
-          messages: apiMessages
-        })
-      }
-    );
+    const openaiResponse =
+      await fetch(
+        "https://api.openai.com/v1/chat/completions",
+        {
+          method: "POST",
+          headers: {
+            Authorization:
+              `Bearer ${process.env.OPENAI_API_KEY}`,
+            "Content-Type":
+              "application/json"
+          },
+          body: JSON.stringify({
+            model: "gpt-5.6",
+            messages: apiMessages
+          })
+        }
+      );
 
     if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
+      const errorText =
+        await openaiResponse.text();
 
-      console.error("OPENAI ERROR:", errorText);
+      console.error(
+        "OPENAI ERROR:",
+        errorText
+      );
 
       return res.status(500).json({
         error: "Fehler bei der KI"
       });
     }
 
-    const openaiData = await openaiResponse.json();
+    const openaiData =
+      await openaiResponse.json();
 
     let reply =
-      openaiData?.choices?.[0]?.message?.content ||
+      openaiData?.choices?.[0]?.message
+        ?.content ||
       "Entschuldigung, ich konnte Ihre Anfrage gerade nicht verarbeiten.";
 
-    const finalState = buildConversationState([
-      ...messages,
-      {
-        role: "user",
-        content: message
-      },
-      {
-        role: "assistant",
-        content: reply
-      }
-    ]);
+    const finalState =
+      buildConversationState([
+        ...messages,
+        {
+          role: "user",
+          content: message
+        },
+        {
+          role: "assistant",
+          content: reply
+        }
+      ]);
 
-    const lead = extractLead(reply, finalState);
+    const lead =
+      extractLead(
+        reply,
+        finalState
+      );
 
     if (lead) {
       try {
-        const savedLead = await saveLead(lead);
+        const savedLead =
+          await saveLead(lead);
 
-        await sendLeadEmail(lead);
+        await sendLeadEmail(
+          lead
+        );
 
-        console.log("LEAD GESPEICHERT:", savedLead.id);
+        console.log(
+          "LEAD GESPEICHERT:",
+          savedLead.id
+        );
 
-        reply = removeLeadFromReply(reply);
+        reply =
+          removeLeadFromReply(
+            reply
+          );
 
         if (!reply) {
           reply =
             "Vielen Dank! Ihre Probefahrt-Anfrage wurde erfolgreich aufgenommen. Das Autohaus wird sich bei Ihnen melden.";
         }
       } catch (leadError) {
-        console.error("LEAD ERROR:", leadError);
+        console.error(
+          "LEAD ERROR:",
+          leadError
+        );
       }
     } else {
-      reply = removeLeadFromReply(reply);
+      reply =
+        removeLeadFromReply(
+          reply
+        );
     }
 
-    reply = cleanReply(reply, finalState);
+    reply =
+      cleanReply(
+        reply,
+        finalState
+      );
 
     return res.status(200).json({
       reply,
       lead: lead
         ? {
             saved: true,
-            vehicle_id: lead.vehicle_id,
+            vehicle_id:
+              lead.vehicle_id,
             date: lead.date,
             time: lead.time
           }
         : null
     });
   } catch (error) {
-    console.error("CHAT API ERROR:", error);
+    console.error(
+      "CHAT API ERROR:",
+      error
+    );
 
     return res.status(500).json({
-      error: "Interner Serverfehler"
+      error:
+        "Interner Serverfehler"
     });
   }
 }
