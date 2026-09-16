@@ -17,26 +17,15 @@ export default async function handler(req, res) {
     let apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
-      console.error("OPENAI_API_KEY fehlt");
-
       return res.status(500).json({
         error: "OPENAI_API_KEY fehlt"
       });
     }
 
-    // Entfernt Leerzeichen, Zeilenumbrüche und versehentliche Anführungszeichen
     apiKey = apiKey
       .replace(/\s/g, "")
       .replace(/^["']|["']$/g, "")
       .replace(/^Bearer/i, "");
-
-    if (!apiKey) {
-      console.error("OPENAI_API_KEY ist leer");
-
-      return res.status(500).json({
-        error: "OPENAI_API_KEY ist leer"
-      });
-    }
 
     console.log("OpenAI Anfrage wird gesendet...");
 
@@ -56,16 +45,19 @@ export default async function handler(req, res) {
           instructions: `
 Du bist ein professioneller KI-Verkaufsassistent für ein Autohaus.
 
+Du beantwortest Kundenfragen freundlich und professionell auf Deutsch.
+
 Deine Aufgaben:
 
-- Beantworte Fragen zu Fahrzeugen.
-- Nenne Fahrzeugdaten nur aus der bereitgestellten Fahrzeugdatenbank.
-- Erfinde niemals Fahrzeuge, Preise, Kilometerstände oder Ausstattungen.
-- Hilf Kunden dabei, passende Fahrzeuge zu finden.
-- Beantworte Fragen zu Preis, Baujahr, Kilometerstand, Kraftstoff, Getriebe und Leistung.
-- Wenn ein Kunde eine Probefahrt möchte, frage nach Name, Telefonnummer, Fahrzeug, Wunschdatum und Wunschzeit.
-- Wenn alle wichtigen Daten vorhanden sind, bestätige die Probefahrt-Anfrage.
-- Antworte freundlich, professionell und auf Deutsch.
+- Kunden zu Fahrzeugen beraten
+- Fahrzeuge anhand von Preis, Marke, Modell, Baujahr, Kilometerstand, Kraftstoff, Getriebe und Leistung erklären
+- Kunden bei der Fahrzeugauswahl unterstützen
+- Probefahrten entgegennehmen
+- Bei einer Probefahrt nach Name, Telefonnummer, Fahrzeug, Wunschdatum und Wunschzeit fragen
+- Niemals Fahrzeugdaten erfinden
+- Wenn dir bestimmte Fahrzeugdaten nicht vorliegen, sage ehrlich, dass diese Information nicht vorliegt
+
+Aktuell handelt es sich um eine Demo des Autohaus-KI-Systems.
           `,
 
           input: message
@@ -83,16 +75,55 @@ Deine Aufgaben:
       });
     }
 
+    /*
+      Die Responses API liefert den Text
+      innerhalb des output-Arrays zurück.
+    */
+
+    let reply = "";
+
+    if (Array.isArray(data.output)) {
+
+      for (const item of data.output) {
+
+        if (!Array.isArray(item.content)) {
+          continue;
+        }
+
+        for (const content of item.content) {
+
+          if (
+            content.type === "output_text" &&
+            typeof content.text === "string"
+          ) {
+            reply += content.text;
+          }
+
+        }
+      }
+    }
+
+    if (!reply) {
+
+      console.error(
+        "KEIN TEXT IN OPENAI ANTWORT:",
+        JSON.stringify(data)
+      );
+
+      return res.status(500).json({
+        error: "OpenAI hat keine Textantwort geliefert"
+      });
+    }
+
     console.log("OpenAI Antwort erfolgreich erhalten.");
 
     return res.status(200).json({
       success: true,
-      reply:
-        data.output_text ||
-        "Entschuldigung, ich konnte gerade keine Antwort erstellen."
+      reply: reply
     });
 
   } catch (error) {
+
     console.error("CHAT ERROR:", error);
 
     return res.status(500).json({
