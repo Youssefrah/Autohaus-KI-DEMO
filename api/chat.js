@@ -1,3 +1,266 @@
+const vehicles = [
+  {
+    id: "A001",
+    brand: "BMW",
+    model: "320d",
+    year: 2021,
+    km: 72000,
+    price: 24990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 190,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A002",
+    brand: "BMW",
+    model: "118i",
+    year: 2022,
+    km: 45000,
+    price: 21990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 136,
+    color: "Weiß",
+    status: "Verfügbar"
+  },
+  {
+    id: "A003",
+    brand: "Mercedes-Benz",
+    model: "A 200",
+    year: 2021,
+    km: 52000,
+    price: 23990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 163,
+    color: "Grau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A004",
+    brand: "Audi",
+    model: "A3 Sportback",
+    year: 2020,
+    km: 61000,
+    price: 20990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 150,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A005",
+    brand: "Volkswagen",
+    model: "Golf 8",
+    year: 2021,
+    km: 48000,
+    price: 19990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 150,
+    color: "Blau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A006",
+    brand: "Volkswagen",
+    model: "Passat Variant",
+    year: 2020,
+    km: 69000,
+    price: 22990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 150,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A007",
+    brand: "Mercedes-Benz",
+    model: "C 220d",
+    year: 2022,
+    km: 39000,
+    price: 32990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 200,
+    color: "Silber",
+    status: "Verfügbar"
+  },
+  {
+    id: "A008",
+    brand: "Audi",
+    model: "A4 Avant",
+    year: 2021,
+    km: 57000,
+    price: 27990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 163,
+    color: "Grau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A009",
+    brand: "BMW",
+    model: "X1",
+    year: 2022,
+    km: 41000,
+    price: 31990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 178,
+    color: "Weiß",
+    status: "Verfügbar"
+  },
+  {
+    id: "A010",
+    brand: "Volkswagen",
+    model: "Tiguan",
+    year: 2021,
+    km: 55000,
+    price: 26990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 150,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A011",
+    brand: "Skoda",
+    model: "Octavia",
+    year: 2021,
+    km: 62000,
+    price: 18990,
+    fuel: "Diesel",
+    transmission: "Automatik",
+    power: 150,
+    color: "Grau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A012",
+    brand: "Seat",
+    model: "Leon",
+    year: 2022,
+    km: 38000,
+    price: 19990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 150,
+    color: "Rot",
+    status: "Verfügbar"
+  },
+  {
+    id: "A013",
+    brand: "Ford",
+    model: "Focus",
+    year: 2021,
+    km: 47000,
+    price: 17990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 155,
+    color: "Blau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A014",
+    brand: "Opel",
+    model: "Astra",
+    year: 2022,
+    km: 35000,
+    price: 18990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 130,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A015",
+    brand: "Renault",
+    model: "Megane",
+    year: 2021,
+    km: 44000,
+    price: 16990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 140,
+    color: "Weiß",
+    status: "Verfügbar"
+  },
+  {
+    id: "A016",
+    brand: "Toyota",
+    model: "Corolla",
+    year: 2022,
+    km: 33000,
+    price: 21990,
+    fuel: "Hybrid",
+    transmission: "Automatik",
+    power: 184,
+    color: "Silber",
+    status: "Verfügbar"
+  },
+  {
+    id: "A017",
+    brand: "Hyundai",
+    model: "i30",
+    year: 2021,
+    km: 42000,
+    price: 17990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 140,
+    color: "Grau",
+    status: "Verfügbar"
+  },
+  {
+    id: "A018",
+    brand: "Kia",
+    model: "Ceed",
+    year: 2022,
+    km: 29000,
+    price: 19990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 160,
+    color: "Schwarz",
+    status: "Verfügbar"
+  },
+  {
+    id: "A019",
+    brand: "Mazda",
+    model: "3",
+    year: 2021,
+    km: 36000,
+    price: 20990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 150,
+    color: "Rot",
+    status: "Verfügbar"
+  },
+  {
+    id: "A020",
+    brand: "Volkswagen",
+    model: "Golf 8 GTI",
+    year: 2022,
+    km: 31000,
+    price: 29990,
+    fuel: "Benzin",
+    transmission: "Automatik",
+    power: 245,
+    color: "Weiß",
+    status: "Nicht verfügbar"
+  }
+];
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -6,7 +269,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { message } = req.body || {};
+    const { message } = req.body;
 
     if (!message) {
       return res.status(400).json({
@@ -14,8 +277,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // OpenAI API-Key
-    let apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY
+      ?.trim()
+      .replace(/\s/g, "")
+      .replace(/^["']|["']$/g, "")
+      .replace(/^Bearer/i, "");
 
     if (!apiKey) {
       return res.status(500).json({
@@ -23,221 +289,95 @@ export default async function handler(req, res) {
       });
     }
 
-    apiKey = apiKey
-      .replace(/\s/g, "")
-      .replace(/^["']|["']$/g, "")
-      .replace(/^Bearer/i, "");
+    const vehicleData = JSON.stringify(vehicles, null, 2);
 
-    /*
-      Vollständige URL für die Fahrzeugdatenbank erstellen.
-      Vercel liefert req.url nur als relativen Pfad.
-    */
+    const instructions = `
+Du bist ein professioneller KI-Verkaufsassistent für ein Autohaus.
 
-    const protocol =
-      req.headers["x-forwarded-proto"] || "https";
+Deine Aufgaben:
+- Beantworte Fragen zu den Fahrzeugen.
+- Nutze ausschließlich die unten angegebene Fahrzeugdatenbank.
+- Erfinde niemals Fahrzeuge, Preise, Kilometerstände, Ausstattungen oder andere Fahrzeugdaten.
+- Wenn ein Fahrzeug "Nicht verfügbar" ist, sage klar, dass es aktuell nicht verfügbar ist.
+- Wenn der Kunde nach passenden Fahrzeugen fragt, suche innerhalb der Datenbank nach passenden Fahrzeugen.
+- Berücksichtige Preis, Marke, Modell, Baujahr, Kilometerstand, Kraftstoff, Getriebe, Leistung und Farbe.
+- Antworte freundlich, professionell und verkaufsorientiert.
+- Wenn mehrere Fahrzeuge passen, nenne die relevantesten Fahrzeuge übersichtlich.
+- Preise immer in Euro angeben.
+- Kilometerstände immer in km angeben.
+- Bei Fragen nach einer Probefahrt: Frage nach Name, Telefonnummer, gewünschtem Datum und gewünschter Uhrzeit, falls diese Informationen noch fehlen.
+- Verwende das aktuelle Datum 2026-09-15.
+- "morgen" bedeutet 2026-09-16.
+- "übermorgen" bedeutet 2026-09-17.
+- Interpretiere relative Datumsangaben entsprechend.
 
-    const host =
-      req.headers.host;
-
-    const vehicleUrl =
-      `${protocol}://${host}/vehicles.json`;
-
-    console.log(
-      "Lade Fahrzeugdaten von:",
-      vehicleUrl
-    );
-
-    // Fahrzeugdaten laden
-    const vehicleResponse =
-      await fetch(vehicleUrl);
-
-    if (!vehicleResponse.ok) {
-
-      console.error(
-        "FAHRZEUGDATEN FEHLER:",
-        vehicleResponse.status
-      );
-
-      return res.status(500).json({
-        error: "Fahrzeugdaten konnten nicht geladen werden"
-      });
-    }
-
-    const vehicles =
-      await vehicleResponse.json();
-
-    console.log(
-      "Fahrzeuge geladen:",
-      vehicles.length
-    );
-
-    const vehicleData =
-      JSON.stringify(vehicles, null, 2);
-
-    // OpenAI Anfrage
-    console.log(
-      "OpenAI Anfrage wird gesendet..."
-    );
-
-    const response = await fetch(
-      "https://api.openai.com/v1/responses",
-      {
-        method: "POST",
-
-        headers: {
-          "Authorization": "Bearer " + apiKey,
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-          model: "gpt-5.6-luna",
-
-          instructions: `
-Du bist der digitale Verkaufsassistent eines Autohauses.
-
-Du berätst Kunden freundlich, professionell und auf Deutsch.
-
-WICHTIG:
-Die folgende Fahrzeugdatenbank ist deine einzige Quelle
-für Fahrzeugdaten.
-
-Erfinde niemals:
-- Fahrzeuge
-- Preise
-- Kilometerstände
-- Baujahre
-- Leistungen
-- Kraftstoffarten
-- Getriebe
-- Farben
-- Verfügbarkeiten
-
-Wenn ein Fahrzeug den Status "Nicht verfügbar" hat,
-darfst du es nicht als verfügbares Fahrzeug anbieten.
-
-Du kannst Fahrzeuge nach folgenden Kriterien suchen:
-
-- Marke
-- Modell
-- Preis
-- Baujahr
-- Kilometerstand
-- Kraftstoff
-- Getriebe
-- Leistung
-- Farbe
-- Verfügbarkeit
-
-Wenn der Kunde zum Beispiel fragt:
-
-"Welche BMW gibt es unter 25.000 €?"
-
-dann suche in der Fahrzeugdatenbank nach passenden,
-verfügbaren BMW-Fahrzeugen.
-
-Nenne bei passenden Fahrzeugen möglichst:
-- Fahrzeug-ID
-- Marke und Modell
-- Baujahr
-- Kilometerstand
-- Preis
-- Kraftstoff
-- Getriebe
-- Leistung
-
-Bei einer Probefahrt:
-
-Frage nach:
-- Name
-- Telefonnummer
-- E-Mail, falls vorhanden
-- gewünschtem Fahrzeug
-- Wunschdatum
-- Wunschzeit
-
-Wenn wichtige Angaben fehlen,
-frage gezielt danach.
-
-Antworte kurz, freundlich und professionell.
-
-FAHRZEUGDATENBANK:
-
+Fahrzeugdatenbank:
 ${vehicleData}
-          `,
 
-          input: message
+Wichtig:
+Diese Fahrzeugdatenbank ist deine einzige Quelle für Fahrzeuginformationen.
+`;
 
-        })
-      }
-    );
+    console.log("OpenAI Anfrage wird gesendet...");
 
-    const data =
-      await response.json();
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + apiKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "gpt-5.6",
+        instructions,
+        input: message
+      })
+    });
+
+    const data = await response.json();
 
     if (!response.ok) {
-
-      console.error(
-        "OPENAI ERROR:",
-        data
-      );
+      console.error("OPENAI ERROR:", data);
 
       return res.status(500).json({
         error: "OpenAI-Anfrage fehlgeschlagen"
       });
     }
 
-    // Antworttext auslesen
+    console.log("OpenAI Antwort erfolgreich erhalten.");
+
     let reply = "";
 
-    if (Array.isArray(data.output)) {
-
+    if (data.output) {
       for (const item of data.output) {
-
-        if (!Array.isArray(item.content)) {
-          continue;
-        }
-
-        for (const content of item.content) {
-
-          if (
-            content.type === "output_text" &&
-            typeof content.text === "string"
-          ) {
-            reply += content.text;
+        if (item.content) {
+          for (const content of item.content) {
+            if (content.type === "output_text" && content.text) {
+              reply += content.text;
+            }
           }
-
         }
       }
     }
 
-    if (!reply) {
+    if (!reply && data.output_text) {
+      reply = data.output_text;
+    }
 
-      console.error(
-        "KEINE TEXTANTWORT:",
-        JSON.stringify(data)
-      );
+    if (!reply) {
+      console.error("KEIN TEXT IN OPENAI ANTWORT:", data);
 
       return res.status(500).json({
-        error: "Keine Textantwort erhalten"
+        error: "Keine Antwort erhalten"
       });
     }
 
-    console.log(
-      "OpenAI Antwort erfolgreich erhalten."
-    );
-
     return res.status(200).json({
       success: true,
-      reply: reply
+      reply
     });
 
   } catch (error) {
-
-    console.error(
-      "CHAT ERROR:",
-      error
-    );
+    console.error("CHAT ERROR:", error);
 
     return res.status(500).json({
       error: "Interner Serverfehler"
