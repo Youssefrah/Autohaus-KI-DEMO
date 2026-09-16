@@ -3,93 +3,89 @@ import { neon } from "@neondatabase/serverless";
 const sql = neon(process.env.POSTGRES_URL);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Nur POST erlaubt"
-    });
-  }
-
   try {
-    const lead = req.body;
+    // GET = Leads aus Neon abrufen
+    if (req.method === "GET") {
+      const leads = await sql`
+        SELECT
+          id,
+          name,
+          phone,
+          email,
+          vehicle_id,
+          vehicle,
+          test_drive,
+          date,
+          time,
+          message,
+          status,
+          created_at
+        FROM leads
+        ORDER BY created_at DESC
+      `;
 
-    if (!lead?.name || !lead?.phone) {
-      return res.status(400).json({
-        error: "Name und Telefonnummer fehlen"
+      return res.status(200).json({
+        success: true,
+        leads
       });
     }
 
-    // 1. Lead in Neon-Datenbank speichern
-    await sql`
-      INSERT INTO leads
-      (name, phone, email, vehicle_id, vehicle, test_drive, date, time, message, status)
-      VALUES
-      (
-        ${lead.name},
-        ${lead.phone},
-        ${lead.email || ""},
-        ${lead.vehicle_id || ""},
-        ${lead.vehicle || ""},
-        ${lead.test_drive ?? true},
-        ${lead.date || null},
-        ${lead.time || null},
-        ${lead.message || ""},
-        ${lead.status || "Neu"}
-      )
-    `;
+    // POST = neuen Lead speichern
+    if (req.method === "POST") {
+      const lead = req.body;
 
-    // 2. E-Mail-Benachrichtigung senden
-    try {
-      const emailResponse = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          from: "Autohaus KI <leads@autoverkauf-ki.de>",
-          to: ["youssefrahime9@gmail.com"],
-          subject: `🚗 Neue Probefahrt-Anfrage: ${lead.vehicle || "Fahrzeug"}`,
-          html: `
-            <h2>🚗 Neue Probefahrt-Anfrage</h2>
-
-            <p><strong>Name:</strong> ${lead.name}</p>
-            <p><strong>Telefon:</strong> ${lead.phone}</p>
-            <p><strong>E-Mail:</strong> ${lead.email || "-"}</p>
-            <p><strong>Fahrzeug:</strong> ${lead.vehicle || "-"}</p>
-            <p><strong>Fahrzeug-ID:</strong> ${lead.vehicle_id || "-"}</p>
-            <p><strong>Datum:</strong> ${lead.date || "-"}</p>
-            <p><strong>Uhrzeit:</strong> ${lead.time || "-"}</p>
-            <p><strong>Nachricht:</strong> ${lead.message || "-"}</p>
-            <p><strong>Status:</strong> ${lead.status || "Neu"}</p>
-          `
-        })
-      });
-
-      if (!emailResponse.ok) {
-        console.error(
-          "EMAIL ERROR:",
-          await emailResponse.text()
-        );
-      } else {
-        console.log("EMAIL ERFOLGREICH GESENDET");
+      if (!lead?.name || !lead?.phone) {
+        return res.status(400).json({
+          error: "Name und Telefonnummer fehlen"
+        });
       }
 
-    } catch (emailError) {
-      console.error("EMAIL ERROR:", emailError);
+      const result = await sql`
+        INSERT INTO leads
+        (
+          name,
+          phone,
+          email,
+          vehicle_id,
+          vehicle,
+          test_drive,
+          date,
+          time,
+          message,
+          status
+        )
+        VALUES
+        (
+          ${lead.name},
+          ${lead.phone},
+          ${lead.email || ""},
+          ${lead.vehicle_id || ""},
+          ${lead.vehicle || ""},
+          ${lead.test_drive ?? true},
+          ${lead.date || null},
+          ${lead.time || null},
+          ${lead.message || ""},
+          ${lead.status || "Neu"}
+        )
+        RETURNING *
+      `;
+
+      return res.status(200).json({
+        success: true,
+        message: "Lead gespeichert",
+        lead: result[0]
+      });
     }
 
-    // Lead bleibt auch dann gespeichert,
-    // wenn der E-Mail-Versand fehlschlägt
-    return res.status(200).json({
-      success: true,
-      message: "Lead gespeichert und E-Mail verarbeitet"
+    return res.status(405).json({
+      error: "Methode nicht erlaubt"
     });
 
   } catch (error) {
-    console.error("LEAD ERROR:", error);
+    console.error("LEADS API ERROR:", error);
 
     return res.status(500).json({
-      error: "Lead konnte nicht verarbeitet werden"
+      error: "Fehler beim Verarbeiten der Leads"
     });
   }
 }
