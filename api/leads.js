@@ -2,10 +2,33 @@ import { neon } from "@neondatabase/serverless";
 
 const sql = neon(process.env.POSTGRES_URL);
 
+function checkAdmin(req) {
+  const adminKey = process.env.ADMIN_KEY;
+
+  if (!adminKey) {
+    return false;
+  }
+
+  const providedKey =
+    req.headers["x-admin-key"] ||
+    req.query?.key ||
+    "";
+
+  return providedKey === adminKey;
+}
+
 export default async function handler(req, res) {
   try {
-    // GET = Leads aus Neon abrufen
+
+    // GET = Leads abrufen
     if (req.method === "GET") {
+
+      if (!checkAdmin(req)) {
+        return res.status(401).json({
+          error: "Nicht autorisiert"
+        });
+      }
+
       const leads = await sql`
         SELECT
           id,
@@ -30,8 +53,10 @@ export default async function handler(req, res) {
       });
     }
 
+
     // POST = neuen Lead speichern
     if (req.method === "POST") {
+
       const lead = req.body;
 
       if (!lead?.name || !lead?.phone) {
@@ -77,11 +102,13 @@ export default async function handler(req, res) {
       });
     }
 
+
     return res.status(405).json({
       error: "Methode nicht erlaubt"
     });
 
   } catch (error) {
+
     console.error("LEADS API ERROR:", error);
 
     return res.status(500).json({
