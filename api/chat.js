@@ -279,9 +279,7 @@ function extractLead(text) {
 
   const lead = {};
 
-  const lines = leadText.split("\n");
-
-  for (const line of lines) {
+  for (const line of leadText.split("\n")) {
     const separator = line.indexOf(":");
 
     if (separator === -1) {
@@ -316,8 +314,6 @@ function removeLeadFromReply(text) {
 }
 
 async function saveLeadAndSendEmail(lead) {
-  const email = lead.email || "";
-
   await sql`
     INSERT INTO leads
     (
@@ -336,7 +332,7 @@ async function saveLeadAndSendEmail(lead) {
     (
       ${lead.name || ""},
       ${lead.phone || ""},
-      ${email},
+      ${lead.email || ""},
       ${lead.vehicle_id || ""},
       ${lead.vehicle || ""},
       true,
@@ -384,19 +380,23 @@ Status:
 Neu
 `;
 
-  const emailResponse = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": "Bearer " + resendKey,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: "Autohaus KI <leads@autoverkauf-ki.de>",
-      to: ["youssefr9999@gmail.com"],
-      subject: `Neue Probefahrt-Anfrage – ${lead.vehicle || "Fahrzeug"}`,
-      text: emailText
-    })
-  });
+  const emailResponse = await fetch(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + resendKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: "Autohaus KI <leads@autoverkauf-ki.de>",
+        to: ["youssefr9999@gmail.com"],
+        subject:
+          `Neue Probefahrt-Anfrage – ${lead.vehicle || "Fahrzeug"}`,
+        text: emailText
+      })
+    }
+  );
 
   const emailData = await emailResponse.json();
 
@@ -409,6 +409,7 @@ Neu
 }
 
 export default async function handler(req, res) {
+
   if (req.method !== "POST") {
     return res.status(405).json({
       error: "Nur POST erlaubt"
@@ -416,6 +417,7 @@ export default async function handler(req, res) {
   }
 
   try {
+
     const { message } = req.body;
 
     if (!message) {
@@ -436,43 +438,108 @@ export default async function handler(req, res) {
       });
     }
 
-    const vehicleData = JSON.stringify(vehicles, null, 2);
+    const vehicleData =
+      JSON.stringify(vehicles, null, 2);
 
     const instructions = `
 Du bist ein professioneller KI-Verkaufsassistent für ein Autohaus.
 
-Deine Aufgaben:
-- Beantworte Fragen zu den Fahrzeugen.
-- Nutze ausschließlich die unten angegebene Fahrzeugdatenbank.
-- Erfinde niemals Fahrzeuge, Preise, Kilometerstände, Ausstattungen oder andere Fahrzeugdaten.
-- Wenn ein Fahrzeug "Nicht verfügbar" ist, sage klar, dass es aktuell nicht verfügbar ist.
-- Wenn der Kunde nach passenden Fahrzeugen fragt, suche innerhalb der Datenbank nach passenden Fahrzeugen.
-- Berücksichtige Preis, Marke, Modell, Baujahr, Kilometerstand, Kraftstoff, Getriebe, Leistung und Farbe.
-- Antworte freundlich, professionell und verkaufsorientiert.
-- Wenn mehrere Fahrzeuge passen, nenne die relevantesten Fahrzeuge übersichtlich.
-- Preise immer in Euro angeben.
-- Kilometerstände immer in km angeben.
+DEINE HAUPTAUFGABE:
+Hilf Kunden dabei, passende Fahrzeuge aus der Fahrzeugdatenbank zu finden und Probefahrten zu vereinbaren.
 
-FORMATIERUNG DER FAHRZEUGE:
-- Formatiere Fahrzeugangebote immer übersichtlich und ohne Tabellen.
-- Verwende für jedes Fahrzeug eine eigene Überschrift mit Marke und Modell.
-- Nutze kurze Zeilen mit Baujahr, Kilometerstand, Kraftstoff, Getriebe, Leistung, Farbe und Preis.
-- Verwende keine Zeichen wie |, --- oder Markdown-Tabellen.
-- Setze zwischen mehrere Fahrzeuge eine Leerzeile.
-- Verwende beim Preis das Format 21.990 €.
+FAHRZEUGSUCHE:
+
+Wenn ein Kunde nach Fahrzeugen sucht, musst du ALLE vom Kunden genannten Kriterien gleichzeitig berücksichtigen.
+
+Mögliche Kriterien sind zum Beispiel:
+- Marke
+- Modell
+- maximaler Preis
+- minimaler Preis
+- maximaler Kilometerstand
+- minimaler Kilometerstand
+- Baujahr
+- Kraftstoff
+- Getriebe
+- Leistung
+- Farbe
+- Verfügbarkeit
+
+Beispiel:
+
+Kunde:
+"Ich suche einen BMW unter 25.000 €, maximal 60.000 km und Automatik."
+
+Dann müssen gleichzeitig gelten:
+
+1. Marke = BMW
+2. Preis <= 25.000 €
+3. Kilometer <= 60.000 km
+4. Getriebe = Automatik
+5. Fahrzeug muss verfügbar sein
+
+Ein Fahrzeug, das nur einige dieser Kriterien erfüllt, darf NICHT als passendes Fahrzeug vorgeschlagen werden.
+
+WICHTIG:
+- Verwende ausschließlich die Fahrzeugdatenbank unten.
+- Erfinde niemals Fahrzeuge oder Fahrzeugdaten.
+- Nicht verfügbare Fahrzeuge dürfen nicht als verfügbare Fahrzeuge vorgeschlagen werden.
+- Wenn kein Fahrzeug alle Kriterien erfüllt, sage ehrlich, dass kein Fahrzeug alle Kriterien erfüllt.
+- Du kannst anschließend anbieten, ein Kriterium zu lockern.
+- Wenn mehrere Fahrzeuge passen, zeige die passendsten Fahrzeuge.
+- Nenne maximal 5 Fahrzeuge auf einmal.
+
+PREISE:
+Preise immer im Format:
+24.990 €
+
+KILOMETER:
+Kilometer immer im Format:
+45.000 km
+
+FAHRZEUGDARSTELLUNG:
+
+Verwende keine Tabellen.
+
+Beispiel:
+
+BMW 118i
+
+Baujahr: 2022
+Kilometer: 45.000 km
+Kraftstoff: Benzin
+Getriebe: Automatik
+Leistung: 136 PS
+Farbe: Weiß
+Preis: 21.990 €
+
+Zwischen mehreren Fahrzeugen eine Leerzeile lassen.
 
 PROBEFAHRT:
-Wenn der Kunde eine Probefahrt vereinbaren möchte:
-- Frage nach Name, Telefonnummer, gewünschtem Datum und gewünschter Uhrzeit, falls diese Informationen noch fehlen.
-- Frage außerdem nach der E-Mail-Adresse, wenn sie noch fehlt.
-- Verwende das aktuelle Datum 2026-09-15.
-- "morgen" bedeutet 2026-09-16.
-- "übermorgen" bedeutet 2026-09-17.
-- Interpretiere relative Datumsangaben entsprechend.
 
-Wenn alle notwendigen Daten für eine Probefahrt vorhanden sind, bestätige die Anfrage freundlich.
+Wenn ein Kunde eine Probefahrt möchte:
 
-Danach MUSST du zusätzlich intern folgenden Block ausgeben:
+Frage nach den fehlenden Informationen:
+
+- Name
+- Telefonnummer
+- E-Mail-Adresse
+- Fahrzeug
+- gewünschtes Datum
+- gewünschte Uhrzeit
+
+Wenn der Kunde bereits Informationen genannt hat, frage NICHT erneut danach.
+
+Verwende das aktuelle Datum:
+2026-09-15
+
+Relative Datumsangaben:
+"morgen" = 2026-09-16
+"übermorgen" = 2026-09-17
+
+Wenn alle notwendigen Informationen vorhanden sind, bestätige die Probefahrt freundlich.
+
+Danach MUSST du zusätzlich diesen technischen Block ausgeben:
 
 LEAD_START
 lead: true
@@ -488,56 +555,73 @@ message: [kurze Zusammenfassung]
 status: Neu
 LEAD_END
 
-Der LEAD-Block ist eine interne technische Information.
-Er darf keine Tabellen enthalten.
-Er soll genau in diesem Format ausgegeben werden.
+Dieser Block wird vom Server verarbeitet und dem Kunden anschließend automatisch verborgen.
 
-Fahrzeugdatenbank:
+FAHRZEUGDATENBANK:
+
 ${vehicleData}
 
-WICHTIG:
-Diese Fahrzeugdatenbank ist deine einzige Quelle für Fahrzeuginformationen.
+WICHTIGSTE REGEL:
+Die Fahrzeugdatenbank ist die einzige Quelle für Fahrzeuginformationen.
 `;
 
     console.log("OpenAI Anfrage wird gesendet...");
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + apiKey,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "gpt-5.6",
-        instructions,
-        input: message
-      })
-    });
+    const response = await fetch(
+      "https://api.openai.com/v1/responses",
+      {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer " + apiKey,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-5.6",
+          instructions,
+          input: message
+        })
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
+
       console.error("OPENAI ERROR:", data);
 
       return res.status(500).json({
         error: "OpenAI-Anfrage fehlgeschlagen"
       });
+
     }
 
-    console.log("OpenAI Antwort erfolgreich erhalten.");
+    console.log(
+      "OpenAI Antwort erfolgreich erhalten."
+    );
 
     let reply = "";
 
     if (data.output) {
+
       for (const item of data.output) {
-        if (item.content) {
-          for (const content of item.content) {
-            if (content.type === "output_text" && content.text) {
-              reply += content.text;
-            }
-          }
+
+        if (!item.content) {
+          continue;
         }
+
+        for (const content of item.content) {
+
+          if (
+            content.type === "output_text" &&
+            content.text
+          ) {
+            reply += content.text;
+          }
+
+        }
+
       }
+
     }
 
     if (!reply && data.output_text) {
@@ -545,33 +629,53 @@ Diese Fahrzeugdatenbank ist deine einzige Quelle für Fahrzeuginformationen.
     }
 
     if (!reply) {
-      console.error("KEIN TEXT IN OPENAI ANTWORT:", data);
+
+      console.error(
+        "KEIN TEXT IN OPENAI ANTWORT:",
+        data
+      );
 
       return res.status(500).json({
         error: "Keine Antwort erhalten"
       });
+
     }
 
     const lead = extractLead(reply);
 
     if (lead) {
-      console.log("LEAD ERKANNT:", lead);
+
+      console.log(
+        "LEAD ERKANNT:",
+        lead
+      );
 
       try {
+
         await saveLeadAndSendEmail(lead);
+
       } catch (leadError) {
-        console.error("LEAD ERROR:", leadError);
+
+        console.error(
+          "LEAD ERROR:",
+          leadError
+        );
 
         return res.status(500).json({
           error: "Lead konnte nicht verarbeitet werden"
         });
+
       }
 
       reply = removeLeadFromReply(reply);
 
       if (!reply) {
-        reply = "Vielen Dank! Ihre Probefahrt-Anfrage wurde erfolgreich aufgenommen. Das Autohaus wird sich bei Ihnen melden.";
+
+        reply =
+          "Vielen Dank! Ihre Probefahrt-Anfrage wurde erfolgreich aufgenommen. Das Autohaus wird sich bei Ihnen melden.";
+
       }
+
     }
 
     return res.status(200).json({
@@ -580,10 +684,16 @@ Diese Fahrzeugdatenbank ist deine einzige Quelle für Fahrzeuginformationen.
     });
 
   } catch (error) {
-    console.error("CHAT ERROR:", error);
+
+    console.error(
+      "CHAT ERROR:",
+      error
+    );
 
     return res.status(500).json({
       error: "Interner Serverfehler"
     });
+
   }
+
 }
