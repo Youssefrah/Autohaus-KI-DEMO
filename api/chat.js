@@ -14,6 +14,7 @@ export default async function handler(req, res) {
       });
     }
 
+    // OpenAI API-Key
     let apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -28,15 +29,30 @@ export default async function handler(req, res) {
       .replace(/^Bearer/i, "");
 
     /*
-      Fahrzeugdaten von der eigenen Website laden
+      Vollständige URL für die Fahrzeugdatenbank erstellen.
+      Vercel liefert req.url nur als relativen Pfad.
     */
 
-    const vehicleUrl =
-      new URL("/vehicles.json", req.url).toString();
+    const protocol =
+      req.headers["x-forwarded-proto"] || "https";
 
-    const vehicleResponse = await fetch(vehicleUrl);
+    const host =
+      req.headers.host;
+
+    const vehicleUrl =
+      `${protocol}://${host}/vehicles.json`;
+
+    console.log(
+      "Lade Fahrzeugdaten von:",
+      vehicleUrl
+    );
+
+    // Fahrzeugdaten laden
+    const vehicleResponse =
+      await fetch(vehicleUrl);
 
     if (!vehicleResponse.ok) {
+
       console.error(
         "FAHRZEUGDATEN FEHLER:",
         vehicleResponse.status
@@ -47,21 +63,21 @@ export default async function handler(req, res) {
       });
     }
 
-    const vehicles = await vehicleResponse.json();
+    const vehicles =
+      await vehicleResponse.json();
 
     console.log(
-      "Fahrzeugdaten geladen:",
+      "Fahrzeuge geladen:",
       vehicles.length
     );
 
     const vehicleData =
       JSON.stringify(vehicles, null, 2);
 
-    /*
-      OpenAI Anfrage
-    */
-
-    console.log("OpenAI Anfrage wird gesendet...");
+    // OpenAI Anfrage
+    console.log(
+      "OpenAI Anfrage wird gesendet..."
+    );
 
     const response = await fetch(
       "https://api.openai.com/v1/responses",
@@ -101,6 +117,7 @@ Wenn ein Fahrzeug den Status "Nicht verfügbar" hat,
 darfst du es nicht als verfügbares Fahrzeug anbieten.
 
 Du kannst Fahrzeuge nach folgenden Kriterien suchen:
+
 - Marke
 - Modell
 - Preis
@@ -112,22 +129,37 @@ Du kannst Fahrzeuge nach folgenden Kriterien suchen:
 - Farbe
 - Verfügbarkeit
 
-Wenn der Kunde beispielsweise fragt:
+Wenn der Kunde zum Beispiel fragt:
 
 "Welche BMW gibt es unter 25.000 €?"
 
-dann suche in der Datenbank nach passenden verfügbaren
-BMW-Fahrzeugen und nenne die relevanten Daten.
+dann suche in der Fahrzeugdatenbank nach passenden,
+verfügbaren BMW-Fahrzeugen.
+
+Nenne bei passenden Fahrzeugen möglichst:
+- Fahrzeug-ID
+- Marke und Modell
+- Baujahr
+- Kilometerstand
+- Preis
+- Kraftstoff
+- Getriebe
+- Leistung
 
 Bei einer Probefahrt:
-- Frage nach dem gewünschten Fahrzeug.
-- Frage nach Name.
-- Frage nach Telefonnummer.
-- Frage nach Wunschdatum.
-- Frage nach Wunschzeit.
-- Frage optional nach E-Mail.
 
-Wenn noch Informationen fehlen, frage gezielt danach.
+Frage nach:
+- Name
+- Telefonnummer
+- E-Mail, falls vorhanden
+- gewünschtem Fahrzeug
+- Wunschdatum
+- Wunschzeit
+
+Wenn wichtige Angaben fehlen,
+frage gezielt danach.
+
+Antworte kurz, freundlich und professionell.
 
 FAHRZEUGDATENBANK:
 
@@ -140,7 +172,8 @@ ${vehicleData}
       }
     );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
 
@@ -154,10 +187,7 @@ ${vehicleData}
       });
     }
 
-    /*
-      Antworttext aus Responses API auslesen
-    */
-
+    // Antworttext auslesen
     let reply = "";
 
     if (Array.isArray(data.output)) {
