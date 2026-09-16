@@ -1,3 +1,7 @@
+import { neon } from "@neondatabase/serverless";
+
+const sql = neon(process.env.POSTGRES_URL);
+
 const vehicles = [
   {
     id: "A001",
@@ -261,6 +265,149 @@ const vehicles = [
   }
 ];
 
+function extractLead(text) {
+  const start = text.indexOf("LEAD_START");
+  const end = text.indexOf("LEAD_END");
+
+  if (start === -1 || end === -1 || end <= start) {
+    return null;
+  }
+
+  const leadText = text
+    .substring(start + "LEAD_START".length, end)
+    .trim();
+
+  const lead = {};
+
+  const lines = leadText.split("\n");
+
+  for (const line of lines) {
+    const separator = line.indexOf(":");
+
+    if (separator === -1) {
+      continue;
+    }
+
+    const key = line.substring(0, separator).trim();
+    const value = line.substring(separator + 1).trim();
+
+    lead[key] = value;
+  }
+
+  if (lead.lead !== "true") {
+    return null;
+  }
+
+  return lead;
+}
+
+function removeLeadFromReply(text) {
+  const start = text.indexOf("LEAD_START");
+  const end = text.indexOf("LEAD_END");
+
+  if (start === -1 || end === -1 || end <= start) {
+    return text.trim();
+  }
+
+  const before = text.substring(0, start).trim();
+  const after = text.substring(end + "LEAD_END".length).trim();
+
+  return `${before}\n${after}`.trim();
+}
+
+async function saveLeadAndSendEmail(lead) {
+  const email = lead.email || "";
+
+  await sql`
+    INSERT INTO leads
+    (
+      name,
+      phone,
+      email,
+      vehicle_id,
+      vehicle,
+      test_drive,
+      date,
+      time,
+      message,
+      status
+    )
+    VALUES
+    (
+      ${lead.name || ""},
+      ${lead.phone || ""},
+      ${email},
+      ${lead.vehicle_id || ""},
+      ${lead.vehicle || ""},
+      true,
+      ${lead.date || null},
+      ${lead.time || null},
+      ${lead.message || "Probefahrt-Anfrage"},
+      ${lead.status || "Neu"}
+    )
+  `;
+
+  const resendKey = process.env.RESEND_API_KEY
+    ?.trim()
+    .replace(/\s/g, "")
+    .replace(/^["']|["']$/g, "")
+    .replace(/^Bearer/i, "");
+
+  if (!resendKey) {
+    console.error("RESEND_API_KEY fehlt");
+    return;
+  }
+
+  const emailText = `
+Neue Probefahrt-Anfrage
+
+Name: ${lead.name || "-"}
+Telefon: ${lead.phone || "-"}
+E-Mail: ${lead.email || "-"}
+
+Fahrzeug:
+${lead.vehicle || "-"}
+
+Fahrzeug-ID:
+${lead.vehicle_id || "-"}
+
+Datum:
+${lead.date || "-"}
+
+Uhrzeit:
+${lead.time || "-"}
+
+Nachricht:
+${lead.message || "-"}
+
+Status:
+Neu
+`;
+
+  const emailResponse = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + resendKey,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      from: "Autohaus KI <leads@autoverkauf-ki.de>",
+      to: ["youssefr9999@gmail.com"],
+      subject: `Neue Probefahrt-Anfrage – ${lead.vehicle || "Fahrzeug"}`,
+      text: emailText
+    })
+  });
+
+  const emailData = await emailResponse.json();
+
+  if (!emailResponse.ok) {
+    console.error("RESEND ERROR:", emailData);
+    throw new Error("E-Mail konnte nicht versendet werden");
+  }
+
+  console.log("LEAD GESPEICHERT UND E-MAIL VERSENDET");
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -313,30 +460,19 @@ FORMATIERUNG DER FAHRZEUGE:
 - Verwende keine Zeichen wie |, --- oder Markdown-Tabellen.
 - Setze zwischen mehrere Fahrzeuge eine Leerzeile.
 - Verwende beim Preis das Format 21.990 €.
-- Der Fahrzeugname soll deutlich erkennbar sein.
 
-Beispiel:
-
-BMW 118i
-
-Baujahr: 2022
-Kilometer: 45.000 km
-Kraftstoff: Benzin
-Getriebe: Automatik
-Leistung: 136 PS
-Farbe: Weiß
-Preis: 21.990 €
-
-Bei Fragen nach einer Probefahrt:
+PROBEFAHRT:
+Wenn der Kunde eine Probefahrt vereinbaren möchte:
 - Frage nach Name, Telefonnummer, gewünschtem Datum und gewünschter Uhrzeit, falls diese Informationen noch fehlen.
+- Frage außerdem nach der E-Mail-Adresse, wenn sie noch fehlt.
 - Verwende das aktuelle Datum 2026-09-15.
 - "morgen" bedeutet 2026-09-16.
 - "übermorgen" bedeutet 2026-09-17.
 - Interpretiere relative Datumsangaben entsprechend.
 
-Wenn alle notwendigen Daten für eine Probefahrt vorhanden sind, gib zusätzlich einen strukturierten Lead aus.
+Wenn alle notwendigen Daten für eine Probefahrt vorhanden sind, bestätige die Anfrage freundlich.
 
-Der strukturierte Lead muss exakt dieses Format verwenden:
+Danach MUSST du zusätzlich intern folgenden Block ausgeben:
 
 LEAD_START
 lead: true
@@ -351,6 +487,10 @@ time: [HH:MM]
 message: [kurze Zusammenfassung]
 status: Neu
 LEAD_END
+
+Der LEAD-Block ist eine interne technische Information.
+Er darf keine Tabellen enthalten.
+Er soll genau in diesem Format ausgegeben werden.
 
 Fahrzeugdatenbank:
 ${vehicleData}
@@ -410,6 +550,28 @@ Diese Fahrzeugdatenbank ist deine einzige Quelle für Fahrzeuginformationen.
       return res.status(500).json({
         error: "Keine Antwort erhalten"
       });
+    }
+
+    const lead = extractLead(reply);
+
+    if (lead) {
+      console.log("LEAD ERKANNT:", lead);
+
+      try {
+        await saveLeadAndSendEmail(lead);
+      } catch (leadError) {
+        console.error("LEAD ERROR:", leadError);
+
+        return res.status(500).json({
+          error: "Lead konnte nicht verarbeitet werden"
+        });
+      }
+
+      reply = removeLeadFromReply(reply);
+
+      if (!reply) {
+        reply = "Vielen Dank! Ihre Probefahrt-Anfrage wurde erfolgreich aufgenommen. Das Autohaus wird sich bei Ihnen melden.";
+      }
     }
 
     return res.status(200).json({
