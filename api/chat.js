@@ -14,10 +14,18 @@ export default async function handler(req, res) {
       });
     }
 
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
+
+    if (!apiKey) {
+      return res.status(500).json({
+        error: "OPENAI_API_KEY fehlt"
+      });
+    }
+
     const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Authorization": "Bearer " + apiKey,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
