@@ -425,9 +425,9 @@ form button{
 
 <script>
 
-/* =========================
+/* =====================================================
    FAHRZEUGE
-========================= */
+===================================================== */
 
 const vehicles = [
 
@@ -714,9 +714,9 @@ const vehicles = [
 ];
 
 
-/* =========================
+/* =====================================================
    HILFSFUNKTIONEN
-========================= */
+===================================================== */
 
 const euro = n =>
   new Intl.NumberFormat(
@@ -729,139 +729,283 @@ const euro = n =>
   ).format(n);
 
 
-/* =========================
+/* =====================================================
    CHAT
-========================= */
+===================================================== */
 
-const chat = document.getElementById("chat");
+const chat =
+  document.getElementById("chat");
+
+
+/*
+   DAS IST DER WICHTIGE TEIL:
+
+   Der komplette bisherige Dialog wird
+   im Browser gespeichert.
+*/
+
+const chatHistory = [];
+
 
 function add(text, who){
 
-  const d = document.createElement("div");
+  const d =
+    document.createElement("div");
 
-  d.className = "msg " + who;
+  d.className =
+    "msg " + who;
 
-  d.textContent = text;
+  d.textContent =
+    text;
 
   chat.appendChild(d);
 
-  chat.scrollTop = chat.scrollHeight;
-
+  chat.scrollTop =
+    chat.scrollHeight;
 }
 
 
+/*
+   NEUE NACHRICHT SENDEN
+*/
+
 async function send(text){
 
-  const inp = document.getElementById("input");
+  const inp =
+    document.getElementById("input");
 
-  const q = text || inp.value.trim();
+  const q =
+    text || inp.value.trim();
 
-  if(!q) return;
+  if(!q){
+    return;
+  }
+
+
+  /*
+     Nachricht sichtbar anzeigen
+  */
 
   add(q,"user");
 
   inp.value = "";
 
-  const loadingMessage = document.createElement("div");
 
-  loadingMessage.className = "msg bot";
+  /*
+     WICHTIG:
+     Benutzer-Nachricht in den Verlauf
+  */
 
-  loadingMessage.textContent = "⏳ Einen Moment...";
+  chatHistory.push({
+    role:"user",
+    content:q
+  });
 
-  chat.appendChild(loadingMessage);
 
-  chat.scrollTop = chat.scrollHeight;
+  /*
+     Ladeanzeige
+  */
+
+  const loadingMessage =
+    document.createElement("div");
+
+  loadingMessage.className =
+    "msg bot";
+
+  loadingMessage.textContent =
+    "⏳ Einen Moment...";
+
+  chat.appendChild(
+    loadingMessage
+  );
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
 
   try{
 
-    const response = await fetch(
-      "/api/chat",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          message:q
-        })
-      }
-    );
+    const response =
+      await fetch(
+        "/api/chat",
+        {
+          method:"POST",
 
-    const data = await response.json();
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          /*
+             HIER WIRD JETZT DER
+             KOMPLETTE CHATVERLAUF
+             MITGESCHICKT.
+          */
+
+          body:JSON.stringify({
+
+            message:q,
+
+            messages:
+              chatHistory
+
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
 
     if(!response.ok){
 
-      console.error("CHAT API ERROR:",data);
+      console.error(
+        "CHAT API ERROR:",
+        data
+      );
 
       loadingMessage.textContent =
         "Leider ist gerade ein Fehler aufgetreten.";
 
-      return;
+      /*
+         Falls die Anfrage fehlschlägt,
+         letzte User-Nachricht aus dem
+         Verlauf entfernen.
+      */
 
+      chatHistory.pop();
+
+      return;
     }
 
+
+    const reply =
+      data.reply ||
+      "Keine Antwort erhalten.";
+
+
+    /*
+       KI-Antwort anzeigen
+    */
+
     loadingMessage.textContent =
-      data.reply || "Keine Antwort erhalten.";
+      reply;
+
+
+    /*
+       WICHTIG:
+       Auch die KI-Antwort wird
+       im Verlauf gespeichert.
+    */
+
+    chatHistory.push({
+
+      role:"assistant",
+
+      content:reply
+
+    });
+
 
   }catch(error){
 
-    console.error("CHAT CONNECTION ERROR:",error);
+    console.error(
+      "CHAT CONNECTION ERROR:",
+      error
+    );
+
 
     loadingMessage.textContent =
       "Leider konnte ich gerade keine Verbindung zum KI-Assistenten herstellen.";
+
+
+    /*
+       User-Nachricht wieder entfernen,
+       wenn überhaupt keine API-Antwort kam.
+    */
+
+    chatHistory.pop();
 
   }
 
 }
 
 
-/* =========================
+/* =====================================================
    PROBEFAHRT FORMULAR
-========================= */
+===================================================== */
 
 async function saveLead(e){
 
   e.preventDefault();
 
+
   const lead = {
 
-    name:document.getElementById("name").value,
+    name:
+      document.getElementById(
+        "name"
+      ).value,
 
-    phone:document.getElementById("phone").value,
+    phone:
+      document.getElementById(
+        "phone"
+      ).value,
 
-    email:document.getElementById("email").value,
+    email:
+      document.getElementById(
+        "email"
+      ).value,
 
-    vehicle_id:document.getElementById("car").value,
+    vehicle_id:
+      document.getElementById(
+        "car"
+      ).value,
 
     vehicle:
-      document.getElementById("car")
-      .selectedOptions[0].text,
+      document.getElementById(
+        "car"
+      ).selectedOptions[0].text,
 
     test_drive:true,
 
-    date:document.getElementById("date").value,
+    date:
+      document.getElementById(
+        "date"
+      ).value,
 
-    time:document.getElementById("time").value,
+    time:
+      document.getElementById(
+        "time"
+      ).value,
 
-    message:"Probefahrt-Anfrage",
+    message:
+      "Probefahrt-Anfrage",
 
-    status:"Neu"
+    status:
+      "Neu"
 
   };
 
 
   try{
 
-    const response = await fetch(
-      "/api/leads",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify(lead)
-      }
-    );
+    const response =
+      await fetch(
+        "/api/leads",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify(lead)
+        }
+      );
 
 
     if(!response.ok){
@@ -875,12 +1019,15 @@ async function saveLead(e){
 
     document.getElementById(
       "success"
-    ).style.display = "block";
+    ).style.display =
+      "block";
 
 
   }catch(error){
 
-    console.error(error);
+    console.error(
+      error
+    );
 
     alert(
       "Die Anfrage konnte gerade nicht gespeichert werden."
@@ -891,66 +1038,98 @@ async function saveLead(e){
 }
 
 
-/* =========================
+/* =====================================================
    FAHRZEUGE DARSTELLEN
-========================= */
+===================================================== */
 
-document.getElementById("car").innerHTML =
+document.getElementById(
+  "car"
+).innerHTML =
+
   vehicles
-  .filter(v => v.status === "Verfügbar")
-  .map(v =>
-    `<option value="${v.id}">
-      ${v.brand} ${v.model} – ${euro(v.price)}
-    </option>`
-  )
-  .join("");
+
+    .filter(
+      v =>
+        v.status === "Verfügbar"
+    )
+
+    .map(
+      v =>
+        `<option value="${v.id}">
+          ${v.brand} ${v.model} – ${euro(v.price)}
+        </option>`
+    )
+
+    .join("");
 
 
-document.getElementById("cars").innerHTML =
+document.getElementById(
+  "cars"
+).innerHTML =
+
   vehicles
-  .map(v =>
 
-    `<div class="vehicle">
+    .map(
+      v =>
 
-      <b>${v.brand} ${v.model}</b>
+        `<div class="vehicle">
 
-      <div class="muted">
-        Baujahr ${v.year}
-        • ${v.km.toLocaleString("de-DE")} km
-        • ${v.fuel}
-        • ${v.transmission}
-      </div>
+          <b>
+            ${v.brand} ${v.model}
+          </b>
 
-      <div class="price">
-        ${euro(v.price)}
-      </div>
+          <div class="muted">
 
-      <div class="muted">
-        ${v.status}
-        • ${v.power} PS
-        • ${v.color}
-      </div>
+            Baujahr ${v.year}
+            • ${v.km.toLocaleString("de-DE")} km
+            • ${v.fuel}
+            • ${v.transmission}
 
-    </div>`
+          </div>
 
-  )
-  .join("");
+          <div class="price">
+
+            ${euro(v.price)}
+
+          </div>
+
+          <div class="muted">
+
+            ${v.status}
+            • ${v.power} PS
+            • ${v.color}
+
+          </div>
+
+        </div>`
+
+    )
+
+    .join("");
 
 
-/* =========================
+/* =====================================================
    LEAD-ZENTRALE
-========================= */
+===================================================== */
 
 async function loadLeads(){
 
   const key =
-    document.getElementById("adminKey").value.trim();
+    document.getElementById(
+      "adminKey"
+    ).value.trim();
+
 
   const status =
-    document.getElementById("leadStatus");
+    document.getElementById(
+      "leadStatus"
+    );
+
 
   const leadsContainer =
-    document.getElementById("leads");
+    document.getElementById(
+      "leads"
+    );
 
 
   if(!key){
@@ -967,23 +1146,28 @@ async function loadLeads(){
     "⏳ Leads werden geladen...";
 
 
-  leadsContainer.innerHTML = "";
+  leadsContainer.innerHTML =
+    "";
 
 
   try{
 
-    const response = await fetch(
-      "/api/leads",
-      {
-        method:"GET",
-        headers:{
-          "x-admin-key":key
+    const response =
+      await fetch(
+        "/api/leads",
+        {
+          method:"GET",
+
+          headers:{
+            "x-admin-key":
+              key
+          }
         }
-      }
-    );
+      );
 
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
 
     if(response.status === 401){
@@ -991,10 +1175,12 @@ async function loadLeads(){
       status.textContent =
         "❌ Falscher Admin-Key.";
 
+
       leadsContainer.innerHTML =
         `<div class="no-leads">
           Zugriff verweigert.
         </div>`;
+
 
       return;
 
@@ -1003,7 +1189,9 @@ async function loadLeads(){
 
     if(!response.ok){
 
-      console.error(data);
+      console.error(
+        data
+      );
 
       status.textContent =
         "❌ Leads konnten nicht geladen werden.";
@@ -1031,90 +1219,145 @@ async function loadLeads(){
 
     leadsContainer.innerHTML =
       data.leads
-      .map(lead => {
 
-        const date =
-          lead.date
-          ? new Date(lead.date)
-              .toLocaleDateString("de-DE")
-          : "-";
+        .map(
+          lead => {
 
-
-        const created =
-          lead.created_at
-          ? new Date(lead.created_at)
-              .toLocaleString("de-DE")
-          : "-";
+            const date =
+              lead.date
+                ? new Date(
+                    lead.date
+                  ).toLocaleDateString(
+                    "de-DE"
+                  )
+                : "-";
 
 
-        return `
+            const created =
+              lead.created_at
+                ? new Date(
+                    lead.created_at
+                  ).toLocaleString(
+                    "de-DE"
+                  )
+                : "-";
 
-          <div class="lead">
 
-            <div class="lead-top">
+            return `
 
-              <div class="lead-name">
-                ${escapeHtml(lead.name || "-")}
+              <div class="lead">
+
+                <div class="lead-top">
+
+                  <div class="lead-name">
+
+                    ${escapeHtml(
+                      lead.name || "-"
+                    )}
+
+                  </div>
+
+                  <div class="badge">
+
+                    ${escapeHtml(
+                      lead.status || "Neu"
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                <div class="lead-line">
+
+                  <span class="lead-label">
+                    🚗 Fahrzeug:
+                  </span>
+
+                  ${escapeHtml(
+                    lead.vehicle || "-"
+                  )}
+
+                </div>
+
+
+                <div class="lead-line">
+
+                  <span class="lead-label">
+                    📅 Probefahrt:
+                  </span>
+
+                  ${date}
+
+                  ${
+                    lead.time
+                      ? " · " +
+                        escapeHtml(
+                          lead.time.substring(
+                            0,
+                            5
+                          )
+                        )
+                      : ""
+                  }
+
+                </div>
+
+
+                <div class="lead-line">
+
+                  <span class="lead-label">
+                    📞 Telefon:
+                  </span>
+
+                  ${escapeHtml(
+                    lead.phone || "-"
+                  )}
+
+                </div>
+
+
+                <div class="lead-line">
+
+                  <span class="lead-label">
+                    ✉️ E-Mail:
+                  </span>
+
+                  ${escapeHtml(
+                    lead.email || "-"
+                  )}
+
+                </div>
+
+
+                <div class="lead-line">
+
+                  <span class="lead-label">
+                    📝 Nachricht:
+                  </span>
+
+                  ${escapeHtml(
+                    lead.message || "-"
+                  )}
+
+                </div>
+
+
+                <div class="lead-line muted">
+
+                  Erstellt:
+                  ${created}
+
+                </div>
+
               </div>
 
-              <div class="badge">
-                ${escapeHtml(lead.status || "Neu")}
-              </div>
+            `;
 
-            </div>
+          }
+        )
 
-
-            <div class="lead-line">
-              <span class="lead-label">
-                🚗 Fahrzeug:
-              </span>
-              ${escapeHtml(lead.vehicle || "-")}
-            </div>
-
-
-            <div class="lead-line">
-              <span class="lead-label">
-                📅 Probefahrt:
-              </span>
-              ${date}
-              ${lead.time ? " · " + escapeHtml(lead.time.substring(0,5)) : ""}
-            </div>
-
-
-            <div class="lead-line">
-              <span class="lead-label">
-                📞 Telefon:
-              </span>
-              ${escapeHtml(lead.phone || "-")}
-            </div>
-
-
-            <div class="lead-line">
-              <span class="lead-label">
-                ✉️ E-Mail:
-              </span>
-              ${escapeHtml(lead.email || "-")}
-            </div>
-
-
-            <div class="lead-line">
-              <span class="lead-label">
-                📝 Nachricht:
-              </span>
-              ${escapeHtml(lead.message || "-")}
-            </div>
-
-
-            <div class="lead-line muted">
-              Erstellt: ${created}
-            </div>
-
-          </div>
-
-        `;
-
-      })
-      .join("");
+        .join("");
 
 
   }catch(error){
@@ -1134,13 +1377,25 @@ async function loadLeads(){
 
 function clearLeads(){
 
-  document.getElementById("adminKey").value = "";
+  document.getElementById(
+    "adminKey"
+  ).value =
+    "";
 
-  document.getElementById("leadStatus").textContent = "";
+  document.getElementById(
+    "leadStatus"
+  ).textContent =
+    "";
 
-  document.getElementById("leads").innerHTML =
+  document.getElementById(
+    "leads"
+  ).innerHTML =
+
     `<div class="no-leads">
-      🔒 Bitte Admin-Key eingeben und „Leads laden“ drücken.
+
+      🔒 Bitte Admin-Key eingeben und
+      „Leads laden“ drücken.
+
     </div>`;
 
 }
@@ -1149,23 +1404,65 @@ function clearLeads(){
 function escapeHtml(value){
 
   return String(value)
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
 
-/* =========================
+/* =====================================================
    STARTNACHRICHT
-========================= */
+===================================================== */
+
+const welcomeMessage =
+  "Hallo! 👋 Ich bin der digitale Verkaufsassistent. Ich kann dir passende Fahrzeuge zeigen und eine Probefahrt aufnehmen. Was suchst du?";
+
 
 add(
-  "Hallo! 👋 Ich bin der digitale Verkaufsassistent. Ich kann dir passende Fahrzeuge zeigen und eine Probefahrt aufnehmen. Was suchst du?",
+  welcomeMessage,
   "bot"
 );
+
+
+/*
+   Auch die Begrüßung kommt in den
+   Gesprächsverlauf.
+
+   Dadurch kennt die KI vom ersten
+   Moment an den kompletten Dialog.
+*/
+
+chatHistory.push({
+
+  role:"assistant",
+
+  content:
+    welcomeMessage
+
+});
 
 </script>
 
